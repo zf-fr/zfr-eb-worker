@@ -21,3 +21,63 @@ You can learn more about how Elastic Beanstalk worker/CRON work here: http://doc
 
 Note that Elastic Beanstalk automatically delete the message from the queue if you return a 200. That's why this package does not
 have any "deleteMessage".
+
+## Usage
+
+### Library configuration
+
+First, make sure to configure the ZfrSqsWorker library by adding this config:
+
+```php
+'zfr_sqs_worker' => [
+    'queues' => [
+        'first_queue' => 'https://sqs.us-east-1.amazon.com/foo,
+        'second_queue' => 'https://sqs.us-east-1.amazon.com/bar
+    ],
+
+    'jobs' => [
+        'send_campaign' => SendCampaignMiddleware::class,
+        'process_image' => ProcessImageMiddleware::class
+    ]
+```
+
+The `queues` is an associative array of queue name and queue URL hosted on AWS SQS, while `jobs` is an associative array that map
+a job name to a specific middleware.
+
+### Configuring Elastic Beanstalk
+
+Then, you should configure your Elastic Beanstalk worker environment to push messages to "/internal/worker" URL (this is the
+default URL configured if you use Zend Expressive). You could even add a pre-routing middleware to do additional security check
+on this URL.
+
+### Pushing message
+
+You can push messages by injecting the `QueuePublisher` service into your classes. You need to first add one or more messages,
+then flush the queue. When flushing, the library will make sure to do as few call as possible to SQS (using optimized SQS batch API),
+and to multiple queues:
+
+```php
+$queuePublisher->push('default_queue', 'process_image', ['image_id' => 123]);
+$queuePublisher->push('default_queue', 'process_image', ['image_id' => 456]);
+
+// ...
+
+$queuePublisher->flush();
+```
+
+The `push` method also accepts a fourth optional array parameters, where you can add specific info on a per-message basis. As of now,
+those options are accepted:
+
+* `delay_delay`: specify how many seconds before the message can be pulled from the first time by SQS. The maximum value is 900 (15 minutes).
+
+Example usage:
+
+```php
+$queuePublisher->push('default_queue', 'process_image', ['image_id' => 123], ['delay_seconds' => 60]);
+```
+
+### How to use periodic tasks?
+
+Elastic Beanstalk also supports periodic tasks through the usage of `cron.yaml` file. However, this is actually easier as you can
+specify a different URL on a task-basis. Therefore, you can dispatch to the URL of your choice and immediately be re-routed to the
+correct middleware.

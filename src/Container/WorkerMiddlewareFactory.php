@@ -16,10 +16,29 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrSqsWorker\Exception;
+namespace ZfrSqsWorker\Container;
 
-use RuntimeException as BaseRuntimeException;
+use Interop\Container\ContainerInterface;
+use ZfrSqsWorker\Exception\RuntimeException;
+use ZfrSqsWorker\WorkerMiddleware;
 
-class RuntimeException extends BaseRuntimeException implements ExceptionInterface
+/**
+ * @author Michaël Gallego
+ */
+class WorkerMiddlewareFactory
 {
+    /**
+     * @param  ContainerInterface $container
+     * @return WorkerMiddleware
+     */
+    public function __invoke(ContainerInterface $container)
+    {
+        $config = $container->get('config');
+
+        if (!isset($config['zfr_sqs_worker'])) {
+            throw new RuntimeException('Key "zfr_sqs_worker" is missing');
+        }
+
+        return new WorkerMiddleware($config['zfr_sqs_worker']['jobs'], $container);
+    }
 }

@@ -64,9 +64,6 @@ class QueuePublisher implements QueuePublisherInterface
             ));
         }
 
-        // We filter the options to valid SQS options only
-        $options = array_intersect_key($options, ['Message' => '', 'MessageAttributes' => '']);
-
         $this->messages[$queue] = [
             'options' => $options,
             'body'    => [

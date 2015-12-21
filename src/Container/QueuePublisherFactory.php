@@ -44,6 +44,6 @@ class QueuePublisherFactory
         $awsSdk    = $container->get(AwsSdk::class);
         $sqsClient = $awsSdk->createSqs();
 
-        return new QueuePublisher($config['queues'], $sqsClient);
+        return new QueuePublisher($config['zfr_sqs_worker']['queues'], $sqsClient);
     }
 }
