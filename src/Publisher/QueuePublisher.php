@@ -59,7 +59,7 @@ class QueuePublisher implements QueuePublisherInterface
         if (!isset($this->queues[$queue])) {
             throw new UnknownQueueException(sprintf(
                 'Queue "%s" is not mapped to an actual SQS queue URL. Did you make sure you have specified the
-                 queue into the "zfr_sqs_queue" config?',
+                 queue into the "zfr_eb_queue" config?',
                 $queue
             ));
         }
