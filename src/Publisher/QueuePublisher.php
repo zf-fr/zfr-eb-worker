@@ -64,7 +64,7 @@ class QueuePublisher implements QueuePublisherInterface
             ));
         }
 
-        $this->messages[$queue] = [
+        $this->messages[$queue][] = [
             'options' => $options,
             'body'    => [
                 'job_name'   => $jobName,
@@ -80,12 +80,12 @@ class QueuePublisher implements QueuePublisherInterface
     {
         // SQS does not support flushing in batch to different queues
 
-        foreach ($this->queues as $queue) {
-            if (!isset($this->messages[$queue])) {
+        foreach ($this->queues as $queueName => $queueUrl) {
+            if (!isset($this->messages[$queueName])) {
                 continue;
             }
 
-            $this->flushQueue($queue);
+            $this->flushQueue($queueName);
         }
     }
 

@@ -9,10 +9,10 @@ ZfrEbWorker is a simple abstraction around SQS, aims to simplify the creation of
 
 ## Installation
 
-Installation of ZfrSqsWorker is only officially supported using Composer:
+Installation of ZfrEbWorker is only officially supported using Composer:
 
 ```sh
-php composer.phar require 'zfr/zfr-sqs-worker:1.*'
+php composer.phar require 'zfr/zfr-eb-worker:1.*'
 ```
 
 ## How Elastic Beanstalk work?
@@ -26,10 +26,10 @@ have any "deleteMessage".
 
 ### Library configuration
 
-First, make sure to configure the ZfrSqsWorker library by adding this config:
+First, make sure to configure the ZfrEbWorker library by adding this config:
 
 ```php
-'zfr_sqs_worker' => [
+'zfr_eb_worker' => [
     'queues' => [
         'first_queue' => 'https://sqs.us-east-1.amazon.com/foo,
         'second_queue' => 'https://sqs.us-east-1.amazon.com/bar

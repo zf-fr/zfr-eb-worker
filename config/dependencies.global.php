@@ -13,7 +13,7 @@ return [
         ]
     ],
 
-    'zfr_sqs_worker' => [
+    'zfr_eb_worker' => [
         /**
          * Array of queue name => queue URL
          */

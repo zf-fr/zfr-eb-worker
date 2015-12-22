@@ -16,34 +16,39 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrEbWorker\Container;
+namespace ZfrEbWorkerTest\Container;
 
-use Aws\Sdk as AwsSdk;
 use Interop\Container\ContainerInterface;
+use ZfrEbWorker\Container\WorkerMiddlewareFactory;
 use ZfrEbWorker\Exception\RuntimeException;
-use ZfrEbWorker\Publisher\QueuePublisher;
+use ZfrEbWorker\WorkerMiddleware;
 
-/**
- * @author Michaël Gallego
- */
-class QueuePublisherFactory
+class WorkerMiddlewareFactoryTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @param  ContainerInterface $container
-     * @return QueuePublisher
-     */
-    public function __invoke(ContainerInterface $container)
+    public function testThrowExceptionIfNoConfig()
     {
-        $config = $container->get('config');
+        $this->setExpectedException(RuntimeException::class);
 
-        if (!isset($config['zfr_eb_worker'])) {
-            throw new RuntimeException('Key "zfr_eb_worker" is missing');
-        }
+        $container = $this->getMock(ContainerInterface::class);
+        $container->expects($this->once())->method('get')->with('config')->willReturn([]);
 
-        /** @var AwsSdk $awsSdk */
-        $awsSdk    = $container->get(AwsSdk::class);
-        $sqsClient = $awsSdk->createSqs();
+        $factory = new WorkerMiddlewareFactory();
 
-        return new QueuePublisher($config['zfr_eb_worker']['queues'], $sqsClient);
+        $factory->__invoke($container);
+    }
+
+    public function testFactory()
+    {
+        $container = $this->getMock(ContainerInterface::class);
+        $container->expects($this->at(0))->method('get')->with('config')->willReturn([
+            'zfr_eb_worker' => [
+                'jobs' => []
+            ]
+        ]);
+
+        $factory        = new WorkerMiddlewareFactory();
+        $queuePublisher = $factory->__invoke($container);
+
+        $this->assertInstanceOf(WorkerMiddleware::class, $queuePublisher);
     }
 }

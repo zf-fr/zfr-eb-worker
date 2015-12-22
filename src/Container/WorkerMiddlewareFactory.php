@@ -35,10 +35,10 @@ class WorkerMiddlewareFactory
     {
         $config = $container->get('config');
 
-        if (!isset($config['zfr_sqs_worker'])) {
-            throw new RuntimeException('Key "zfr_sqs_worker" is missing');
+        if (!isset($config['zfr_eb_worker'])) {
+            throw new RuntimeException('Key "zfr_eb_worker" is missing');
         }
 
-        return new WorkerMiddleware($config['zfr_sqs_worker']['jobs'], $container);
+        return new WorkerMiddleware($config['zfr_eb_worker']['jobs'], $container);
     }
 }

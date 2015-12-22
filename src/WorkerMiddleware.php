@@ -70,18 +70,18 @@ class WorkerMiddleware
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $out = null)
     {
         // The full message is set as part of the body
-        $body    = json_decode($request->getBody(), true)['body'];
+        $body    = json_decode($request->getBody(), true);
         $jobName = $body['job_name'];
         $message = $body['attributes'];
+
+        // Let's retrieve the correct middleware by using the mapping
+        $middleware = $this->getMiddlewareForJob($jobName);
 
         // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request attributes
         // so they can be easier to process, and set the message attributes
         $request = $request->withAttribute('worker.matched_queue', $request->getHeaderLine('X-Aws-Sqsd-Queue'))
             ->withAttribute('worker.message_id', $request->getHeaderLine('X-Aws-Sqsd-Msgid'))
             ->withAttribute('worker.message_body', $message);
-
-        // Finally, let's retrieve the good middleware and dispatch to it
-        $middleware = $this->getMiddlewareForJob($jobName);
 
         return $middleware($request, $response, $out);
     }
@@ -94,11 +94,11 @@ class WorkerMiddleware
     {
         if (!isset($this->jobMapping[$jobName])) {
             throw new RuntimeException(sprintf(
-                'No middleware could be found for job "%s". Did you have properly fill the "zfr_sqs_worker" configuration?',
+                'No middleware could be found for job "%s". Did you have properly fill the "zfr_eb_worker" configuration?',
                 $jobName
             ));
         }
 
-        return $this->container->get($jobName);
+        return $this->container->get($this->jobMapping[$jobName]);
     }
 }
