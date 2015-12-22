@@ -1,6 +1,8 @@
 ZfrEbWorker
 ============
 
+[![Build Status](https://travis-ci.org/zf-fr/zfr-eb-worker.svg)](https://travis-ci.org/zf-fr/zfr-eb-worker)
+
 ZfrEbWorker is a simple abstraction around SQS, aims to simplify the creation of app in Elastic Beanstalk.
 
 ## Dependencies
