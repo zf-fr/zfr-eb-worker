@@ -16,7 +16,7 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrSqsWorker\Exception;
+namespace ZfrEbWorker\Exception;
 
 use RuntimeException as BaseRuntimeException;
 

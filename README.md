@@ -1,7 +1,7 @@
-ZfrSqsWorker
+ZfrEbWorker
 ============
 
-ZfrSqsWorker is a simple abstraction around SQS, aims to simplify the creation of app in Elastic Beanstalk.
+ZfrEbWorker is a simple abstraction around SQS, aims to simplify the creation of app in Elastic Beanstalk.
 
 ## Dependencies
 

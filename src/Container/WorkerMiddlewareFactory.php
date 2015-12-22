@@ -16,11 +16,11 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrSqsWorker\Container;
+namespace ZfrEbWorker\Container;
 
 use Interop\Container\ContainerInterface;
-use ZfrSqsWorker\Exception\RuntimeException;
-use ZfrSqsWorker\WorkerMiddleware;
+use ZfrEbWorker\Exception\RuntimeException;
+use ZfrEbWorker\WorkerMiddleware;
 
 /**
  * @author Michaël Gallego

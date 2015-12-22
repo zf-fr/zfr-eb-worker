@@ -1,15 +1,15 @@
 {
-    "name": "zfr/zfr-sqs-worker",
+    "name": "zfr/zfr-eb-worker",
     "type": "library",
     "license": "MIT",
-    "description" : "Thin abstraction around AWS SQS",
+    "description" : "Thin abstraction around AWS SQS for Elastic Beanstalk worker environments",
     "keywords": [
         "sqs",
         "middleware",
         "expressive",
         "elastic beanstalk"
     ],
-    "homepage": "https://github.com/zf-fr/zfr-sqs-worker",
+    "homepage": "https://github.com/zf-fr/zfr-eb-worker",
     "authors": [
         {
             "name": "Michaël Gallego",
@@ -28,12 +28,12 @@
     },
     "autoload": {
         "psr-4": {
-            "ZfrSqsWorker\\": "src/"
+            "ZfrEbWorker\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "ZfrSqsWorkerTest\\": "test/"
+            "ZfrEbWorkerTest\\": "test/"
         }
     },
     "extra": {

@@ -1,6 +1,6 @@
 <?php
 
-use ZfrSqsWorker\WorkerMiddleware;
+use ZfrEbWorker\WorkerMiddleware;
 
 return [
     'routes' => [

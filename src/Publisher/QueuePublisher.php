@@ -16,10 +16,10 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrSqsWorker\Publisher;
+namespace ZfrEbWorker\Publisher;
 
 use Aws\Sqs\SqsClient;
-use ZfrSqsWorker\Exception\UnknownQueueException;
+use ZfrEbWorker\Exception\UnknownQueueException;
 
 /**
  * @author Michaël Gallego

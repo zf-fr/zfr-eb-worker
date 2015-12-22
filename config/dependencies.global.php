@@ -1,9 +1,9 @@
 <?php
 
-use ZfrSqsWorker\Container\QueuePublisherFactory;
-use ZfrSqsWorker\Container\WorkerMiddlewareFactory;
-use ZfrSqsWorker\Publisher\QueuePublisher;
-use ZfrSqsWorker\WorkerMiddleware;
+use ZfrEbWorker\Container\QueuePublisherFactory;
+use ZfrEbWorker\Container\WorkerMiddlewareFactory;
+use ZfrEbWorker\Publisher\QueuePublisher;
+use ZfrEbWorker\WorkerMiddleware;
 
 return [
     'dependencies' => [

@@ -16,7 +16,7 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrSqsWorker\Publisher;
+namespace ZfrEbWorker\Publisher;
 
 /**
  * Interface for a queue publisher

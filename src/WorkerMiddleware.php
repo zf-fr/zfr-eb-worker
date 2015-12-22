@@ -16,12 +16,12 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrSqsWorker;
+namespace ZfrEbWorker;
 
 use Interop\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use ZfrSqsWorker\Exception\RuntimeException;
+use ZfrEbWorker\Exception\RuntimeException;
 
 /**
  * Worker middleware

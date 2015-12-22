@@ -16,12 +16,12 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrSqsWorker\Container;
+namespace ZfrEbWorker\Container;
 
 use Aws\Sdk as AwsSdk;
 use Interop\Container\ContainerInterface;
-use ZfrSqsWorker\Exception\RuntimeException;
-use ZfrSqsWorker\Publisher\QueuePublisher;
+use ZfrEbWorker\Exception\RuntimeException;
+use ZfrEbWorker\Publisher\QueuePublisher;
 
 /**
  * @author Michaël Gallego
