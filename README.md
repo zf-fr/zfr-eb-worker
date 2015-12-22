@@ -33,8 +33,8 @@ First, make sure to configure the ZfrEbWorker library by adding this config:
 ```php
 'zfr_eb_worker' => [
     'queues' => [
-        'first_queue' => 'https://sqs.us-east-1.amazon.com/foo,
-        'second_queue' => 'https://sqs.us-east-1.amazon.com/bar
+        'first_queue' => 'https://sqs.us-east-1.amazon.com/foo',
+        'second_queue' => 'https://sqs.us-east-1.amazon.com/bar'
     ],
 
     'jobs' => [
