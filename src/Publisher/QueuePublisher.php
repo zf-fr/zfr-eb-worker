@@ -87,6 +87,9 @@ class QueuePublisher implements QueuePublisherInterface
 
             $this->flushQueue($queueName);
         }
+
+        // We reset the messages so that we make sure we don't duplicate message by calling flush multiple times
+        $this->messages = [];
     }
 
     /**

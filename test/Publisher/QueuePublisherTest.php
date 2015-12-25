@@ -80,6 +80,17 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
         $publisher->flush();
     }
 
+    public function testFlushClearMessages()
+    {
+        $this->sqsClient->expects($this->once())->method('sendMessageBatch');
+
+        $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
+        $publisher->push('default_queue', 'job-name', ['id' => 1]);
+
+        $publisher->flush();
+        $publisher->flush();
+    }
+
     public function testCanPushToMultipleQueues()
     {
         $firstExpectedPayload = [
