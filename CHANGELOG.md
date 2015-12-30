@@ -1,3 +1,7 @@
+# 1.0.4
+
+* Update PHPUnit dependency for better PHP7 support
+
 # 1.0.3
 
 * Fix directory for Container tests
