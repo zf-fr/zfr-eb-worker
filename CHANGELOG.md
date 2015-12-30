@@ -1,3 +1,7 @@
+# 1.0.3
+
+* Fix directory for Container tests
+
 # 1.0.2
 
 * Ensure that messages are not duplicated by clearing the message on flush
