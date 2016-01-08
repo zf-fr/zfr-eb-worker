@@ -45,6 +45,16 @@ interface QueuePublisherInterface
     public function push(string $queue, string $jobName, array $attributes = [], array $options = []);
 
     /**
+     * Adjust the visibility of a given message
+     *
+     * @param  string $queue
+     * @param  string $receiptHandle
+     * @param  int    $visibility
+     * @return void
+     */
+    public function changeMessageVisibility(string $queue, string $receiptHandle, int $visibility);
+
+    /**
      * Flush the queue
      *
      * @return void

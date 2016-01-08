@@ -31,7 +31,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->sqsClient = $this->getMock(SqsClient::class, ['sendMessageBatch'], [], '', false);
+        $this->sqsClient = $this->getMock(SqsClient::class, ['sendMessageBatch', 'changeMessageVisibility'], [], '', false);
     }
 
     public function testThrowExceptionIfPushToUnknownQueue()
@@ -40,6 +40,20 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
 
         $publisher = new QueuePublisher([], $this->sqsClient);
         $publisher->push('unknown-queue', 'job-name');
+    }
+
+    public function testCanChangeMessageVisibility()
+    {
+        $this->sqsClient->expects($this->once())
+            ->method('changeMessageVisibility')
+            ->with([
+                'QueueUrl'          => 'https://queue-url.aws.com',
+                'ReceiptHandle'     => 'my_receipt_handle',
+                'VisibilityTimeout' => 500
+            ]);
+
+        $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
+        $publisher->changeMessageVisibility('default_queue', 'my_receipt_handle', 500);
     }
 
     public function testCanPushToSingleQueue()
