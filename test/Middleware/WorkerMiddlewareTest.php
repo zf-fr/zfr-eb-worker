@@ -48,11 +48,11 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         $this->response  = $this->getMock(ResponseInterface::class);
     }
 
-    public function testThrowExceptionIfNoJobMapping()
+    public function testThrowExceptionIfNoTaskMapping()
     {
         $this->setExpectedException(RuntimeException::class);
 
-        $body = json_encode(['job_name' => 'job-name', 'attributes' => []]);
+        $body = json_encode(['task_name' => 'task-name', 'attributes' => []]);
         $this->request->expects($this->once())->method('getBody')->willReturn($body);
 
         $middleware = new WorkerMiddleware([], $this->container);
@@ -61,16 +61,16 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
     public function testCanDispatchToMiddleware()
     {
-        $body = json_encode(['job_name' => 'job-name', 'attributes' => ['id' => 123]]);
+        $body = json_encode(['task_name' => 'task-name', 'attributes' => ['id' => 123]]);
         $this->request->expects($this->at(0))->method('getBody')->willReturn($body);
 
-        $middleware = new WorkerMiddleware(['job-name' => 'MyMiddleware'], $this->container);
+        $middleware = new WorkerMiddleware(['task-name' => 'MyMiddleware'], $this->container);
 
-        $jobMiddleware = function($request, $response) {
+        $taskMiddleware = function($request, $response) {
           $this->assertSame($request, $this->request);
         };
 
-        $this->container->expects($this->once())->method('get')->with('MyMiddleware')->willReturn($jobMiddleware);
+        $this->container->expects($this->once())->method('get')->with('MyMiddleware')->willReturn($taskMiddleware);
 
         $this->request->expects($this->at(1))->method('getHeaderLine')->with('X-Aws-Sqsd-Queue')->willReturn('default-queue');
         $this->request->expects($this->at(2))->method('withAttribute')->with('worker.matched_queue', 'default-queue')->willReturnSelf();

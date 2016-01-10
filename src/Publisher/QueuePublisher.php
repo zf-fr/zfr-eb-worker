@@ -54,7 +54,7 @@ class QueuePublisher implements QueuePublisherInterface
     /**
      * {@inheritDoc}
      */
-    public function push(string $queue, string $jobName, array $attributes = [], array $options = [])
+    public function push(string $queue, string $taskName, array $attributes = [], array $options = [])
     {
         if (!isset($this->queues[$queue])) {
             throw new UnknownQueueException(sprintf(
@@ -67,7 +67,7 @@ class QueuePublisher implements QueuePublisherInterface
         $this->messages[$queue][] = [
             'options' => $options,
             'body'    => [
-                'job_name'   => $jobName,
+                'task_name'  => $taskName,
                 'attributes' => $attributes
             ]
         ];

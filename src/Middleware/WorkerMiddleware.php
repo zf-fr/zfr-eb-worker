@@ -42,7 +42,7 @@ class WorkerMiddleware
     private $container;
 
     /**
-     * Map job names to a middleware. For instance:
+     * Map task names to a middleware. For instance:
      *
      * [
      *      'process_image' => ProcessImageMiddleware::class
@@ -50,16 +50,16 @@ class WorkerMiddleware
      *
      * @var array
      */
-    private $jobMapping;
+    private $taskMapping;
 
     /**
-     * @param array              $jobMapping
+     * @param array              $taskMapping
      * @param ContainerInterface $container
      */
-    public function __construct(array $jobMapping, ContainerInterface $container)
+    public function __construct(array $taskMapping, ContainerInterface $container)
     {
-        $this->jobMapping = $jobMapping;
-        $this->container  = $container;
+        $this->taskMapping = $taskMapping;
+        $this->container   = $container;
     }
 
     /**
@@ -70,12 +70,12 @@ class WorkerMiddleware
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $out = null)
     {
         // The full message is set as part of the body
-        $body    = json_decode($request->getBody(), true);
-        $jobName = $body['job_name'];
-        $message = $body['attributes'];
+        $body     = json_decode($request->getBody(), true);
+        $taskName = $body['task_name'];
+        $message  = $body['attributes'];
 
         // Let's retrieve the correct middleware by using the mapping
-        $middleware = $this->getMiddlewareForJob($jobName);
+        $middleware = $this->getMiddlewareForTask($taskName);
 
         // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request attributes
         // so they can be easier to process, and set the message attributes
@@ -87,18 +87,18 @@ class WorkerMiddleware
     }
 
     /**
-     * @param  string $jobName
+     * @param  string $taskName
      * @return callable
      */
-    private function getMiddlewareForJob(string $jobName): callable
+    private function getMiddlewareForTask(string $taskName): callable
     {
-        if (!isset($this->jobMapping[$jobName])) {
+        if (!isset($this->taskMapping[$taskName])) {
             throw new RuntimeException(sprintf(
-                'No middleware could be found for job "%s". Did you have properly fill the "zfr_eb_worker" configuration?',
-                $jobName
+                'No middleware could be found for task "%s". Did you have properly fill the "zfr_eb_worker" configuration?',
+                $taskName
             ));
         }
 
-        return $this->container->get($this->jobMapping[$jobName]);
+        return $this->container->get($this->taskMapping[$taskName]);
     }
 }

@@ -42,7 +42,7 @@ class WorkerMiddlewareFactoryTest extends \PHPUnit_Framework_TestCase
         $container = $this->getMock(ContainerInterface::class);
         $container->expects($this->at(0))->method('get')->with('config')->willReturn([
             'zfr_eb_worker' => [
-                'jobs' => []
+                'tasks' => []
             ]
         ]);
 
