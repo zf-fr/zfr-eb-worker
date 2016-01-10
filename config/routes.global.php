@@ -1,6 +1,6 @@
 <?php
 
-use ZfrEbWorker\WorkerMiddleware;
+use ZfrEbWorker\Middleware\WorkerMiddleware;
 
 return [
     'routes' => [
