@@ -16,13 +16,13 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrEbWorkerTest;
+namespace ZfrEbWorkerTest\Middleware;
 
 use Interop\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ZfrEbWorker\Exception\RuntimeException;
-use ZfrEbWorker\WorkerMiddleware;
+use ZfrEbWorker\Middleware\WorkerMiddleware;
 
 class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 {

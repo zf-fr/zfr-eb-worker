@@ -16,7 +16,7 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrEbWorker;
+namespace ZfrEbWorker\Middleware;
 
 use Interop\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
