@@ -20,7 +20,7 @@ namespace ZfrEbWorker\Container;
 
 use Interop\Container\ContainerInterface;
 use ZfrEbWorker\Exception\RuntimeException;
-use ZfrEbWorker\WorkerMiddleware;
+use ZfrEbWorker\Middleware\WorkerMiddleware;
 
 /**
  * @author Michaël Gallego

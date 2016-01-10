@@ -3,7 +3,7 @@
 use ZfrEbWorker\Container\QueuePublisherFactory;
 use ZfrEbWorker\Container\WorkerMiddlewareFactory;
 use ZfrEbWorker\Publisher\QueuePublisher;
-use ZfrEbWorker\WorkerMiddleware;
+use ZfrEbWorker\Middleware\WorkerMiddleware;
 
 return [
     'dependencies' => [

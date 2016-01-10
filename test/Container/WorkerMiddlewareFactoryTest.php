@@ -21,7 +21,7 @@ namespace ZfrEbWorkerTest\Container;
 use Interop\Container\ContainerInterface;
 use ZfrEbWorker\Container\WorkerMiddlewareFactory;
 use ZfrEbWorker\Exception\RuntimeException;
-use ZfrEbWorker\WorkerMiddleware;
+use ZfrEbWorker\Middleware\WorkerMiddleware;
 
 class WorkerMiddlewareFactoryTest extends \PHPUnit_Framework_TestCase
 {

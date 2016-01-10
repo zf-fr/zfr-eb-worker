@@ -1,3 +1,8 @@
+# 1.1.0
+
+* [BC] `WorkerMiddleware` has been moved to its own namespace. You should not have any problem unless you were
+explicitly extending the middleware.
+
 # 1.0.4
 
 * Update PHPUnit dependency for better PHP7 support
