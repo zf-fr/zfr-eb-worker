@@ -39,6 +39,6 @@ class WorkerMiddlewareFactory
             throw new RuntimeException('Key "zfr_eb_worker" is missing');
         }
 
-        return new WorkerMiddleware($config['zfr_eb_worker']['jobs'], $container);
+        return new WorkerMiddleware($config['zfr_eb_worker']['tasks'], $container);
     }
 }

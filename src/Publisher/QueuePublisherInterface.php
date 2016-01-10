@@ -37,12 +37,12 @@ interface QueuePublisherInterface
      *      - delay_seconds: number of seconds the message is delayed before being processed
      *
      * @param  string $queue
-     * @param  string $jobName
+     * @param  string $taskName
      * @param  array  $attributes
      * @param  array  $options
      * @return void
      */
-    public function push(string $queue, string $jobName, array $attributes = [], array $options = []);
+    public function push(string $queue, string $taskName, array $attributes = [], array $options = []);
 
     /**
      * Flush the queue

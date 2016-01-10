@@ -39,7 +39,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException(UnknownQueueException::class);
 
         $publisher = new QueuePublisher([], $this->sqsClient);
-        $publisher->push('unknown-queue', 'job-name');
+        $publisher->push('unknown-queue', 'task-name');
     }
 
     public function testCanPushToSingleQueue()
@@ -51,7 +51,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                     'Id'           => 0,
                     'DelaySeconds' => 30,
                     'MessageBody'  => json_encode([
-                        'job_name'   => 'job-name',
+                        'task_name'  => 'task-name',
                         'attributes' => [
                             'id' => 123
                         ]
@@ -63,7 +63,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
         $this->sqsClient->expects($this->once())->method('sendMessageBatch')->with($expectedPayload);
 
         $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
-        $publisher->push('default_queue', 'job-name', ['id' => 123], ['delay_seconds' => 30]);
+        $publisher->push('default_queue', 'task-name', ['id' => 123], ['delay_seconds' => 30]);
         $publisher->flush();
     }
 
@@ -74,7 +74,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
         $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
 
         for ($i = 0 ; $i != 15 ; ++$i) {
-            $publisher->push('default_queue', 'job-name', ['id' => $i], ['delay_seconds' => 30]);
+            $publisher->push('default_queue', 'task-name', ['id' => $i], ['delay_seconds' => 30]);
         }
 
         $publisher->flush();
@@ -85,7 +85,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
         $this->sqsClient->expects($this->once())->method('sendMessageBatch');
 
         $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
-        $publisher->push('default_queue', 'job-name', ['id' => 1]);
+        $publisher->push('default_queue', 'task-name', ['id' => 1]);
 
         $publisher->flush();
         $publisher->flush();
@@ -99,7 +99,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                 [
                     'Id'           => 0,
                     'MessageBody'  => json_encode([
-                        'job_name'   => 'job-name',
+                        'task_name'  => 'task-name',
                         'attributes' => []
                     ])
                 ]
@@ -112,7 +112,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                 [
                     'Id'           => 0,
                     'MessageBody'  => json_encode([
-                        'job_name'   => 'job-name',
+                        'task_name'  => 'task-name',
                         'attributes' => []
                     ])
                 ]
@@ -129,8 +129,8 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
 
         $publisher = new QueuePublisher($queueConfig, $this->sqsClient);
 
-        $publisher->push('first_queue', 'job-name');
-        $publisher->push('second_queue', 'job-name');
+        $publisher->push('first_queue', 'task-name');
+        $publisher->push('second_queue', 'task-name');
         $publisher->flush();
     }
 }

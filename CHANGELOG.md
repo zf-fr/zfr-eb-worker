@@ -1,3 +1,7 @@
+# 2.0.0
+
+* `jobs` were renamed `tasks` to be on-par with Elastic Beanstalk worker terminology.
+
 # 1.1.0
 
 * [BC] `WorkerMiddleware` has been moved to its own namespace. You should not have any problem unless you were

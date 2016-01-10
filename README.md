@@ -14,7 +14,7 @@ ZfrEbWorker is a simple abstraction around SQS, aims to simplify the creation of
 Installation of ZfrEbWorker is only officially supported using Composer:
 
 ```sh
-php composer.phar require 'zfr/zfr-eb-worker:1.*'
+php composer.phar require 'zfr/zfr-eb-worker:2.*'
 ```
 
 ## How Elastic Beanstalk work?
@@ -37,14 +37,14 @@ First, make sure to configure the ZfrEbWorker library by adding this config:
         'second_queue' => 'https://sqs.us-east-1.amazon.com/bar'
     ],
 
-    'jobs' => [
+    'tasks' => [
         'send_campaign' => SendCampaignMiddleware::class,
         'process_image' => ProcessImageMiddleware::class
     ]
 ```
 
-The `queues` is an associative array of queue name and queue URL hosted on AWS SQS, while `jobs` is an associative array that map
-a job name to a specific middleware.
+The `queues` is an associative array of queue name and queue URL hosted on AWS SQS, while `tasks` is an associative array that map
+a task name to a specific middleware.
 
 ### Configuring Elastic Beanstalk
 
@@ -76,6 +76,23 @@ Example usage:
 
 ```php
 $queuePublisher->push('default_queue', 'process_image', ['image_id' => 123], ['delay_seconds' => 60]);
+```
+
+### Retrieving task info
+
+ZfrEbWorker will automatically dispatch the incoming request to the middleware specified for the given task. The task information is
+stored inside various request attributes, as shown below:
+
+```php
+class MyTaskMiddleware
+{
+    public function __invoke($request, $response, $out)
+    {
+        $queue       = $request->getAttribute('worker.matched_queue');
+        $messageId   = $request->getAttribute('worker.message_id');
+        $messageBody = $request->getAttribute('worker.message_body');
+    }
+}
 ```
 
 ### How to use periodic tasks?
