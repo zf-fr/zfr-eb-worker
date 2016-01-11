@@ -81,7 +81,8 @@ class WorkerMiddleware
         // so they can be easier to process, and set the message attributes
         $request = $request->withAttribute('worker.matched_queue', $request->getHeaderLine('X-Aws-Sqsd-Queue'))
             ->withAttribute('worker.message_id', $request->getHeaderLine('X-Aws-Sqsd-Msgid'))
-            ->withAttribute('worker.message_body', $message);
+            ->withAttribute('worker.message_body', $message)
+            ->withAttribute('worker.task_name', $taskName);
 
         return $middleware($request, $response, $out);
     }
