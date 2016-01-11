@@ -77,6 +77,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         $this->request->expects($this->at(3))->method('getHeaderLine')->with('X-Aws-Sqsd-Msgid')->willReturn('123abc');
         $this->request->expects($this->at(4))->method('withAttribute')->with('worker.message_id', '123abc')->willReturnSelf();
         $this->request->expects($this->at(5))->method('withAttribute')->with('worker.message_body', ['id' => 123])->willReturnSelf();
+        $this->request->expects($this->at(6))->method('withAttribute')->with('worker.task_name', 'task-name')->willReturnSelf();
 
         $middleware->__invoke($this->request, $this->response);
     }

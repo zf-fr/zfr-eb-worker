@@ -1,3 +1,7 @@
+# 2.0.1
+
+* Add the attribute `worker.task_name` to the request attribute
+
 # 2.0.0
 
 * `jobs` were renamed `tasks` to be on-par with Elastic Beanstalk worker terminology.

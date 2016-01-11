@@ -91,6 +91,7 @@ class MyTaskMiddleware
         $queue       = $request->getAttribute('worker.matched_queue');
         $messageId   = $request->getAttribute('worker.message_id');
         $messageBody = $request->getAttribute('worker.message_body');
+        $taskName    = $request->getAttribute('worker.task_name');
     }
 }
 ```
