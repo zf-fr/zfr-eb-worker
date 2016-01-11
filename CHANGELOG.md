@@ -1,3 +1,7 @@
+# 2.0.2
+
+* Add a `QueuePublisherInterface` key as alias, that maps to the concrete implementation for cleaner re-usability.
+
 # 2.0.1
 
 * Add the attribute `worker.task_name` to the request attribute
