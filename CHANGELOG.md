@@ -1,3 +1,7 @@
+# 2.0.4
+
+* Use `require_once` instead of `include_once` for `AppConfig`.
+
 # 2.0.3
 
 * Fix the `AppConfig` path.
