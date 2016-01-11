@@ -42,5 +42,8 @@
             "config/dependencies.global.php",
             "config/routes.global.php"
         ]
+    },
+    "scripts": {
+        "test": "phpunit"
     }
 }

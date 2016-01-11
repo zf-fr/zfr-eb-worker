@@ -1,3 +1,7 @@
+# 2.0.3
+
+* Fix the `AppConfig` path.
+
 # 2.0.2
 
 * Add a `QueuePublisherInterface` key as alias, that maps to the concrete implementation for cleaner re-usability.
