@@ -76,6 +76,26 @@ class QueuePublisher implements QueuePublisherInterface
     /**
      * {@inheritDoc}
      */
+    public function changeMessageVisibility(string $queue, string $receiptHandle, int $visibility)
+    {
+        if (!isset($this->queues[$queue])) {
+            throw new UnknownQueueException(sprintf(
+                'Queue "%s" is not mapped to an actual SQS queue URL. Did you make sure you have specified the
+                 queue into the "zfr_eb_worker" config?',
+                $queue
+            ));
+        }
+
+        $this->sqsClient->changeMessageVisibility([
+            'QueueUrl'          => $this->queues[$queue],
+            'ReceiptHandle'     => $receiptHandle,
+            'VisibilityTimeout' => $visibility
+        ]);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function flush()
     {
         // SQS does not support flushing in batch to different queues
