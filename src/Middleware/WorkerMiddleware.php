@@ -27,10 +27,11 @@ use ZfrEbWorker\Exception\RuntimeException;
  * Worker middleware
  *
  * What this thing does is extracting the message from the request, and dispatching to the proper middleware. Because
- * Zend Expressive does not have a simple way of redirecting, the simplest way is simply to fetch the corresponding middleware,
- * and do the routing here.
+ * Zend Expressive does not have a simple way of redirecting, the simplest way is simply to fetch the corresponding
+ * middleware, and do the routing here.
  *
- * You can find a complete reference of what Elastic Beanstalk set here: http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html
+ * You can find a complete reference of what Elastic Beanstalk set here:
+ * http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html
  *
  * @author Michaël Gallego
  */
@@ -77,8 +78,8 @@ class WorkerMiddleware
         // Let's retrieve the correct middleware by using the mapping
         $middleware = $this->getMiddlewareForTask($taskName);
 
-        // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request attributes
-        // so they can be easier to process, and set the message attributes
+        // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request
+        // attributes so they can be easier to process, and set the message attributes
         $request = $request->withAttribute('worker.matched_queue', $request->getHeaderLine('X-Aws-Sqsd-Queue'))
             ->withAttribute('worker.message_id', $request->getHeaderLine('X-Aws-Sqsd-Msgid'))
             ->withAttribute('worker.message_body', $message)
@@ -95,7 +96,8 @@ class WorkerMiddleware
     {
         if (!isset($this->taskMapping[$taskName])) {
             throw new RuntimeException(sprintf(
-                'No middleware could be found for task "%s". Did you have properly fill the "zfr_eb_worker" configuration?',
+                'No middleware could be found for task "%s". Did you have properly fill
+                the "zfr_eb_worker" configuration?',
                 $taskName
             ));
         }
