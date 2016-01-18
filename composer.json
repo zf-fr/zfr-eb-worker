@@ -37,13 +37,9 @@
             "ZfrEbWorkerTest\\": "test/"
         }
     },
-    "extra": {
-        "expressive-config": [
-            "config/dependencies.global.php",
-            "config/routes.global.php"
-        ]
-    },
     "scripts": {
+        "cs": "phpcs",
+        "cs-fix": "phpcbf",
         "test": "phpunit"
     }
 }
