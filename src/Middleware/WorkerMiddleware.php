@@ -43,7 +43,7 @@ class WorkerMiddleware
     private $container;
 
     /**
-     * Map event names to a middleware. For instance:
+     * Map messages names to a middleware. For instance:
      *
      * [
      *      'image.saved' => ProcessImageMiddleware::class
@@ -51,16 +51,16 @@ class WorkerMiddleware
      *
      * @var array
      */
-    private $eventsMapping;
+    private $messagesMapping;
 
     /**
-     * @param array              $eventsMapping
+     * @param array              $messagesMapping
      * @param ContainerInterface $container
      */
-    public function __construct(array $eventsMapping, ContainerInterface $container)
+    public function __construct(array $messagesMapping, ContainerInterface $container)
     {
-        $this->eventsMapping = $eventsMapping;
-        $this->container     = $container;
+        $this->messagesMapping = $messagesMapping;
+        $this->container       = $container;
     }
 
     /**
@@ -76,7 +76,7 @@ class WorkerMiddleware
         $payload = $body['payload'];
 
         // Let's retrieve the correct middleware by using the mapping
-        $middleware = $this->getMiddlewareForEvent($name);
+        $middleware = $this->getMiddlewareForMessage($name);
 
         // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request
         // attributes so they can be easier to process, and set the message attributes
@@ -89,19 +89,19 @@ class WorkerMiddleware
     }
 
     /**
-     * @param  string $eventName
+     * @param  string $messageName
      * @return callable
      */
-    private function getMiddlewareForEvent(string $eventName): callable
+    private function getMiddlewareForMessage(string $messageName): callable
     {
-        if (!isset($this->eventsMapping[$eventName])) {
+        if (!isset($this->messagesMapping[$messageName])) {
             throw new RuntimeException(sprintf(
-                'No middleware could be found for event "%s". Did you have properly fill
+                'No middleware could be found for message "%s". Did you have properly fill
                 the "zfr_eb_worker" configuration?',
-                $eventName
+                $messageName
             ));
         }
 
-        return $this->container->get($this->eventsMapping[$eventName]);
+        return $this->container->get($this->messagesMapping[$messageName]);
     }
 }

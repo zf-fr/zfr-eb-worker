@@ -32,7 +32,7 @@ class QueuePublisherFactory
      * @param  ContainerInterface $container
      * @return QueuePublisher
      */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): QueuePublisher
     {
         $config = $container->get('config');
 

@@ -31,7 +31,7 @@ class WorkerMiddlewareFactory
      * @param  ContainerInterface $container
      * @return WorkerMiddleware
      */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): WorkerMiddleware
     {
         $config = $container->get('config');
 
@@ -39,6 +39,6 @@ class WorkerMiddlewareFactory
             throw new RuntimeException('Key "zfr_eb_worker" is missing');
         }
 
-        return new WorkerMiddleware($config['zfr_eb_worker']['events'], $container);
+        return new WorkerMiddleware($config['zfr_eb_worker']['messages'], $container);
     }
 }

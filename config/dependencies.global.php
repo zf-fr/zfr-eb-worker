@@ -26,9 +26,9 @@ return [
         'queues' => [],
 
         /**
-         * Array of event names => middlewares to execute
+         * Array of messages names => middlewares to execute
          */
 
-        'events' => []
+        'messages' => []
     ]
 ];

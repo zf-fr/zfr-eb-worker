@@ -37,13 +37,13 @@ First, make sure to configure the ZfrEbWorker library by adding this config:
         'second_queue' => 'https://sqs.us-east-1.amazon.com/bar'
     ],
 
-    'events' => [
-        'send_campaign' => SendCampaignMiddleware::class,
-        'process_image' => ProcessImageMiddleware::class
+    'messages' => [
+        'project.created' => SendCampaignMiddleware::class,
+        'image.saved'     => ProcessImageMiddleware::class
     ]
 ```
 
-The `queues` is an associative array of queue name and queue URL hosted on AWS SQS, while `events` is an associative array that map
+The `queues` is an associative array of queue name and queue URL hosted on AWS SQS, while `messages` is an associative array that map
 a event name to a specific middleware.
 
 ### Configuring Elastic Beanstalk
@@ -59,8 +59,8 @@ then flush the queue. When flushing, the library will make sure to do as few cal
 and to multiple queues:
 
 ```php
-$queuePublisher->push('default_queue', 'process_image', ['image_id' => 123]);
-$queuePublisher->push('default_queue', 'process_image', ['image_id' => 456]);
+$queuePublisher->push('default_queue', 'image.saved', ['image_id' => 123]);
+$queuePublisher->push('default_queue', 'imave.saved', ['image_id' => 456]);
 
 // ...
 
@@ -90,10 +90,10 @@ class MyEventMiddleware
 {
     public function __invoke($request, $response, $out)
     {
-        $queue       = $request->getAttribute('worker.matched_queue');
-        $messageId   = $request->getAttribute('worker.message_id');
-        $messageBody = $request->getAttribute('worker.message_body');
-        $name        = $request->getAttribute('worker.name');
+        $queue          = $request->getAttribute('worker.matched_queue');
+        $messageId      = $request->getAttribute('worker.message_id');
+        $messagePayload = $request->getAttribute('worker.message_payload');
+        $name           = $request->getAttribute('worker.message_name');
     }
 }
 ```
