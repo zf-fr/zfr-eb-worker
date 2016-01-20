@@ -67,6 +67,32 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
         $publisher->flush();
     }
 
+    public function testCanPushToSingleQueueSetLazily()
+    {
+        $expectedPayload = [
+            'QueueUrl' => 'https://queue-url.aws.com',
+            'Entries'  => [
+                [
+                    'Id'           => 0,
+                    'DelaySeconds' => 30,
+                    'MessageBody'  => json_encode([
+                        'task_name'  => 'task-name',
+                        'attributes' => [
+                            'id' => 123
+                        ]
+                    ])
+                ]
+            ]
+        ];
+
+        $this->sqsClient->expects($this->once())->method('sendMessageBatch')->with($expectedPayload);
+
+        $publisher = new QueuePublisher([], $this->sqsClient);
+        $publisher->setQueue('default_queue', 'https://queue-url.aws.com');
+        $publisher->push('default_queue', 'task-name', ['id' => 123], ['delay_seconds' => 30]);
+        $publisher->flush();
+    }
+
     public function testCanPushMoreThanTenMessages()
     {
         $this->sqsClient->expects($this->exactly(2))->method('sendMessageBatch');

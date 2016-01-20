@@ -1,3 +1,7 @@
+# 2.1.0
+
+* Add a new 
+
 # 2.0.4
 
 * Use `require_once` instead of `include_once` for `AppConfig`.

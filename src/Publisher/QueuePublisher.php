@@ -54,6 +54,14 @@ class QueuePublisher implements QueuePublisherInterface
     /**
      * {@inheritDoc}
      */
+    public function setQueue(string $queue, string $queueUrl)
+    {
+        $this->queues[$queue] = $queueUrl;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function push(string $queue, string $taskName, array $attributes = [], array $options = [])
     {
         if (!isset($this->queues[$queue])) {
@@ -64,7 +72,9 @@ class QueuePublisher implements QueuePublisherInterface
             ));
         }
 
-        $this->messages[$queue][] = [
+        $queueUrl = $this->queues[$queue];
+
+        $this->messages[$queueUrl][] = [
             'options' => $options,
             'body'    => [
                 'task_name'  => $taskName,
