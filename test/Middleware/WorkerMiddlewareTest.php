@@ -52,7 +52,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(RuntimeException::class);
 
-        $body = json_encode(['name' => 'event-name', 'payload' => []]);
+        $body = json_encode(['name' => 'message-name', 'payload' => []]);
         $this->request->getBody()->shouldBeCalled()->willReturn($body);
 
         $middleware = new WorkerMiddleware([], $this->container->reveal());
@@ -61,10 +61,10 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
     public function testCanDispatchToMiddleware()
     {
-        $body = json_encode(['name' => 'event-name', 'payload' => ['id' => 123]]);
+        $body = json_encode(['name' => 'message-name', 'payload' => ['id' => 123]]);
         $this->request->getBody()->shouldBeCalled()->willReturn($body);
 
-        $middleware = new WorkerMiddleware(['event-name' => 'MyMiddleware'], $this->container->reveal());
+        $middleware = new WorkerMiddleware(['message-name' => 'MyMiddleware'], $this->container->reveal());
 
         $messageMiddleware = function($request, $response) {
           $this->assertSame($request, $this->request->reveal());
@@ -77,7 +77,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         $this->request->getHeaderLine('X-Aws-Sqsd-Msgid')->shouldBeCalled()->willReturn('123abc');
         $this->request->withAttribute('worker.message_id', '123abc')->shouldBeCalled()->willReturn($this->request->reveal());
         $this->request->withAttribute('worker.message_payload', ['id' => 123])->shouldBeCalled()->willReturn($this->request->reveal());
-        $this->request->withAttribute('worker.message_name', 'event-name')->shouldBeCalled()->willReturn($this->request->reveal());
+        $this->request->withAttribute('worker.message_name', 'message-name')->shouldBeCalled()->willReturn($this->request->reveal());
 
         $middleware->__invoke($this->request->reveal(), $this->response->reveal());
     }
