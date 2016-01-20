@@ -31,6 +31,15 @@ namespace ZfrEbWorker\Publisher;
 interface QueuePublisherInterface
 {
     /**
+     * Set a new queue using an URL
+     *
+     * @param  string $queue
+     * @param  string $queueUrl
+     * @return void
+     */
+    public function setQueue(string $queue, string $queueUrl);
+
+    /**
      * Push a message into the queue
      *
      * Supported options for now are:
