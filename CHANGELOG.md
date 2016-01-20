@@ -1,3 +1,8 @@
+# 3.0.0
+
+* Naming was (again, sorry...) changed to better reflect common usage (domain events). "task_name" was renamed to "name", while
+"attributes" was renamed "payload"
+
 # 2.1.0
 
 * Add a new `setQueue` method to `QueuePublisherInterface` to add new queues at runtime.

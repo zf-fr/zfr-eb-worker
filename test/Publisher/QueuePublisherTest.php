@@ -51,8 +51,8 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                     'Id'           => 0,
                     'DelaySeconds' => 30,
                     'MessageBody'  => json_encode([
-                        'task_name'  => 'task-name',
-                        'attributes' => [
+                        'name'    => 'event-name',
+                        'payload' => [
                             'id' => 123
                         ]
                     ])
@@ -63,7 +63,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
         $this->sqsClient->expects($this->once())->method('sendMessageBatch')->with($expectedPayload);
 
         $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
-        $publisher->push('default_queue', 'task-name', ['id' => 123], ['delay_seconds' => 30]);
+        $publisher->push('default_queue', 'event-name', ['id' => 123], ['delay_seconds' => 30]);
         $publisher->flush();
     }
 
@@ -76,8 +76,8 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                     'Id'           => 0,
                     'DelaySeconds' => 30,
                     'MessageBody'  => json_encode([
-                        'task_name'  => 'task-name',
-                        'attributes' => [
+                        'name'    => 'event-name',
+                        'payload' => [
                             'id' => 123
                         ]
                     ])
@@ -89,7 +89,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
 
         $publisher = new QueuePublisher([], $this->sqsClient);
         $publisher->setQueue('default_queue', 'https://queue-url.aws.com');
-        $publisher->push('default_queue', 'task-name', ['id' => 123], ['delay_seconds' => 30]);
+        $publisher->push('default_queue', 'event-name', ['id' => 123], ['delay_seconds' => 30]);
         $publisher->flush();
     }
 
@@ -100,7 +100,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
         $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
 
         for ($i = 0 ; $i != 15 ; ++$i) {
-            $publisher->push('default_queue', 'task-name', ['id' => $i], ['delay_seconds' => 30]);
+            $publisher->push('default_queue', 'event-name', ['id' => $i], ['delay_seconds' => 30]);
         }
 
         $publisher->flush();
@@ -111,7 +111,7 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
         $this->sqsClient->expects($this->once())->method('sendMessageBatch');
 
         $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
-        $publisher->push('default_queue', 'task-name', ['id' => 1]);
+        $publisher->push('default_queue', 'event-name', ['id' => 1]);
 
         $publisher->flush();
         $publisher->flush();
@@ -125,8 +125,8 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                 [
                     'Id'           => 0,
                     'MessageBody'  => json_encode([
-                        'task_name'  => 'task-name',
-                        'attributes' => []
+                        'name'    => 'event-name',
+                        'payload' => []
                     ])
                 ]
             ]
@@ -138,8 +138,8 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                 [
                     'Id'           => 0,
                     'MessageBody'  => json_encode([
-                        'task_name'  => 'task-name',
-                        'attributes' => []
+                        'name'    => 'event-name',
+                        'payload' => []
                     ])
                 ]
             ]
@@ -155,8 +155,8 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
 
         $publisher = new QueuePublisher($queueConfig, $this->sqsClient);
 
-        $publisher->push('first_queue', 'task-name');
-        $publisher->push('second_queue', 'task-name');
+        $publisher->push('first_queue', 'event-name');
+        $publisher->push('second_queue', 'event-name');
         $publisher->flush();
     }
 }

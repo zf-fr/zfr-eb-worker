@@ -52,7 +52,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(RuntimeException::class);
 
-        $body = json_encode(['task_name' => 'task-name', 'attributes' => []]);
+        $body = json_encode(['name' => 'event-name', 'payload' => []]);
         $this->request->expects($this->once())->method('getBody')->willReturn($body);
 
         $middleware = new WorkerMiddleware([], $this->container);
@@ -61,10 +61,10 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
     public function testCanDispatchToMiddleware()
     {
-        $body = json_encode(['task_name' => 'task-name', 'attributes' => ['id' => 123]]);
+        $body = json_encode(['name' => 'event-name', 'payload' => ['id' => 123]]);
         $this->request->expects($this->at(0))->method('getBody')->willReturn($body);
 
-        $middleware = new WorkerMiddleware(['task-name' => 'MyMiddleware'], $this->container);
+        $middleware = new WorkerMiddleware(['event-name' => 'MyMiddleware'], $this->container);
 
         $taskMiddleware = function($request, $response) {
           $this->assertSame($request, $this->request);
@@ -76,8 +76,8 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         $this->request->expects($this->at(2))->method('withAttribute')->with('worker.matched_queue', 'default-queue')->willReturnSelf();
         $this->request->expects($this->at(3))->method('getHeaderLine')->with('X-Aws-Sqsd-Msgid')->willReturn('123abc');
         $this->request->expects($this->at(4))->method('withAttribute')->with('worker.message_id', '123abc')->willReturnSelf();
-        $this->request->expects($this->at(5))->method('withAttribute')->with('worker.message_body', ['id' => 123])->willReturnSelf();
-        $this->request->expects($this->at(6))->method('withAttribute')->with('worker.task_name', 'task-name')->willReturnSelf();
+        $this->request->expects($this->at(5))->method('withAttribute')->with('worker.message_payload', ['id' => 123])->willReturnSelf();
+        $this->request->expects($this->at(6))->method('withAttribute')->with('worker.message_name', 'event-name')->willReturnSelf();
 
         $middleware->__invoke($this->request, $this->response);
     }
