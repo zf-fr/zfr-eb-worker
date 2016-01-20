@@ -43,10 +43,10 @@ class WorkerMiddleware
     private $container;
 
     /**
-     * Map task names to a middleware. For instance:
+     * Map event names to a middleware. For instance:
      *
      * [
-     *      'process_image' => ProcessImageMiddleware::class
+     *      'image.saved' => ProcessImageMiddleware::class
      * ]
      *
      * @var array
