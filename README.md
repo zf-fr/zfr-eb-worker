@@ -44,7 +44,7 @@ First, make sure to configure the ZfrEbWorker library by adding this config:
 ```
 
 The `queues` is an associative array of queue name and queue URL hosted on AWS SQS, while `messages` is an associative array that map
-a event name to a specific middleware.
+a message name to a specific middleware.
 
 ### Configuring Elastic Beanstalk
 
@@ -80,9 +80,9 @@ $queuePublisher->push('default_queue', 'image.saved', ['image_id' => 123], ['del
 
 Your worker then could optimize the image as a response of this event.
 
-### Retrieving event info
+### Retrieving message info
 
-ZfrEbWorker will automatically dispatch the incoming request to the middleware specified for the given event. The event information is
+ZfrEbWorker will automatically dispatch the incoming request to the middleware specified for the given event. The message information is
 stored inside various request attributes, as shown below:
 
 ```php

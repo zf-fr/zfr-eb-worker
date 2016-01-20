@@ -1,7 +1,8 @@
 # 3.0.0
 
-* Naming was (again, sorry...) changed to better reflect common usage (domain events). "task_name" was renamed to "name", while
-"attributes" was renamed "payload"
+* Naming was (again, sorry...) changed to better reflect usage. Especially: 
+    * In the message added to SQS, `task_name` was renamed `name`, and `attributes` was renamed `payload`.
+    * In the configuration, config key `tasks` was renamed `messages`
 
 # 2.1.0
 
