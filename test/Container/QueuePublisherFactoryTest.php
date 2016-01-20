@@ -23,7 +23,6 @@ use Aws\Sqs\SqsClient;
 use Interop\Container\ContainerInterface;
 use ZfrEbWorker\Container\QueuePublisherFactory;
 use ZfrEbWorker\Exception\RuntimeException;
-use ZfrEbWorker\Publisher\QueuePublisherInterface;
 
 class QueuePublisherFactoryTest extends \PHPUnit_Framework_TestCase
 {
@@ -31,33 +30,31 @@ class QueuePublisherFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(RuntimeException::class);
 
-        $container = $this->getMock(ContainerInterface::class);
-        $container->expects($this->once())->method('get')->with('config')->willReturn([]);
+        $container = $this->prophesize(ContainerInterface::class);
+        $container->get('config')->shouldBeCalled()->willReturn([]);
 
         $factory = new QueuePublisherFactory();
 
-        $factory->__invoke($container);
+        $factory->__invoke($container->reveal());
     }
 
     public function testFactory()
     {
-        $container = $this->getMock(ContainerInterface::class);
-        $container->expects($this->at(0))->method('get')->with('config')->willReturn([
+        $container = $this->prophesize(ContainerInterface::class);
+        $container->get('config')->shouldBeCalled()->willReturn([
             'zfr_eb_worker' => [
                 'queues' => []
             ]
         ]);
 
-        $sqsClient = $this->getMock(SqsClient::class, [], [], '', false);
+        $sqsClient = $this->prophesize(SqsClient::class);
 
-        $awsSdk = $this->getMock(AwsSdk::class, ['createSqs']);
-        $awsSdk->expects($this->once())->method('createSqs')->willReturn($sqsClient);
+        $awsSdk = $this->prophesize(AwsSdk::class);
+        $awsSdk->createSqs()->shouldBeCalled()->willReturn($sqsClient->reveal());
 
-        $container->expects($this->at(1))->method('get')->with(AwsSdk::class)->willReturn($awsSdk);
+        $container->get(AwsSdk::class)->shouldBeCalled()->willReturn($awsSdk->reveal());
 
-        $factory        = new QueuePublisherFactory();
-        $queuePublisher = $factory->__invoke($container);
-
-        $this->assertInstanceOf(QueuePublisherInterface::class, $queuePublisher);
+        $factory = new QueuePublisherFactory();
+        $factory->__invoke($container->reveal());
     }
 }

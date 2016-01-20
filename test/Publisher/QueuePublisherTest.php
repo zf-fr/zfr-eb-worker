@@ -19,27 +19,28 @@
 namespace ZfrEbWorkerTest\Publisher;
 
 use Aws\Sqs\SqsClient;
+use Prophecy\Argument;
 use ZfrEbWorker\Exception\UnknownQueueException;
 use ZfrEbWorker\Publisher\QueuePublisher;
 
 class QueuePublisherTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var SqsClient|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Prophecy\Prophecy\ObjectProphecy
      */
     private $sqsClient;
 
     public function setUp()
     {
-        $this->sqsClient = $this->getMock(SqsClient::class, ['sendMessageBatch'], [], '', false);
+        $this->sqsClient = $this->prophesize(SqsClient::class);
     }
 
     public function testThrowExceptionIfPushToUnknownQueue()
     {
         $this->setExpectedException(UnknownQueueException::class);
 
-        $publisher = new QueuePublisher([], $this->sqsClient);
-        $publisher->push('unknown-queue', 'task-name');
+        $publisher = new QueuePublisher([], $this->sqsClient->reveal());
+        $publisher->push('unknown-queue', 'message-name');
     }
 
     public function testCanPushToSingleQueue()
@@ -51,19 +52,19 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                     'Id'           => 0,
                     'DelaySeconds' => 30,
                     'MessageBody'  => json_encode([
-                        'task_name'  => 'task-name',
-                        'attributes' => [
+                        'name'    => 'message-name',
+                        'payload' => [
                             'id' => 123
                         ]
-                    ])
+                    ]),
                 ]
             ]
         ];
 
-        $this->sqsClient->expects($this->once())->method('sendMessageBatch')->with($expectedPayload);
+        $this->sqsClient->sendMessageBatch($expectedPayload)->shouldBeCalled();
 
-        $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
-        $publisher->push('default_queue', 'task-name', ['id' => 123], ['delay_seconds' => 30]);
+        $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient->reveal());
+        $publisher->push('default_queue', 'message-name', ['id' => 123], ['delay_seconds' => 30]);
         $publisher->flush();
     }
 
@@ -76,31 +77,31 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                     'Id'           => 0,
                     'DelaySeconds' => 30,
                     'MessageBody'  => json_encode([
-                        'task_name'  => 'task-name',
-                        'attributes' => [
+                        'name'    => 'message-name',
+                        'payload' => [
                             'id' => 123
                         ]
-                    ])
+                    ]),
                 ]
             ]
         ];
 
-        $this->sqsClient->expects($this->once())->method('sendMessageBatch')->with($expectedPayload);
+        $this->sqsClient->sendMessageBatch($expectedPayload);
 
-        $publisher = new QueuePublisher([], $this->sqsClient);
+        $publisher = new QueuePublisher([], $this->sqsClient->reveal());
         $publisher->setQueue('default_queue', 'https://queue-url.aws.com');
-        $publisher->push('default_queue', 'task-name', ['id' => 123], ['delay_seconds' => 30]);
+        $publisher->push('default_queue', 'message-name', ['id' => 123], ['delay_seconds' => 30]);
         $publisher->flush();
     }
 
     public function testCanPushMoreThanTenMessages()
     {
-        $this->sqsClient->expects($this->exactly(2))->method('sendMessageBatch');
+        $this->sqsClient->sendMessageBatch(Argument::any())->shouldBeCalledTimes(2);
 
-        $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
+        $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient->reveal());
 
         for ($i = 0 ; $i != 15 ; ++$i) {
-            $publisher->push('default_queue', 'task-name', ['id' => $i], ['delay_seconds' => 30]);
+            $publisher->push('default_queue', 'message-name', ['id' => $i], ['delay_seconds' => 30]);
         }
 
         $publisher->flush();
@@ -108,10 +109,10 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
 
     public function testFlushClearMessages()
     {
-        $this->sqsClient->expects($this->once())->method('sendMessageBatch');
+        $this->sqsClient->sendMessageBatch(Argument::any())->shouldBeCalled();
 
-        $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient);
-        $publisher->push('default_queue', 'task-name', ['id' => 1]);
+        $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient->reveal());
+        $publisher->push('default_queue', 'message-name', ['id' => 1]);
 
         $publisher->flush();
         $publisher->flush();
@@ -125,8 +126,8 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                 [
                     'Id'           => 0,
                     'MessageBody'  => json_encode([
-                        'task_name'  => 'task-name',
-                        'attributes' => []
+                        'name'    => 'message-name',
+                        'payload' => []
                     ])
                 ]
             ]
@@ -138,25 +139,25 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
                 [
                     'Id'           => 0,
                     'MessageBody'  => json_encode([
-                        'task_name'  => 'task-name',
-                        'attributes' => []
+                        'name'    => 'message-name',
+                        'payload' => []
                     ])
                 ]
             ]
         ];
 
-        $this->sqsClient->expects($this->at(0))->method('sendMessageBatch')->with($firstExpectedPayload);
-        $this->sqsClient->expects($this->at(1))->method('sendMessageBatch')->with($secondExpectedPayload);
+        $this->sqsClient->sendMessageBatch($firstExpectedPayload);
+        $this->sqsClient->sendMessageBatch($secondExpectedPayload);
 
         $queueConfig = [
             'first_queue'  => 'https://first-queue-url.aws.com',
             'second_queue' => 'https://second-queue-url.aws.com'
         ];
 
-        $publisher = new QueuePublisher($queueConfig, $this->sqsClient);
+        $publisher = new QueuePublisher($queueConfig, $this->sqsClient->reveal());
 
-        $publisher->push('first_queue', 'task-name');
-        $publisher->push('second_queue', 'task-name');
+        $publisher->push('first_queue', 'message-name');
+        $publisher->push('second_queue', 'message-name');
         $publisher->flush();
     }
 }

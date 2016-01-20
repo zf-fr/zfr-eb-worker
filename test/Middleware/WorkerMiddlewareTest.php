@@ -27,58 +27,58 @@ use ZfrEbWorker\Middleware\WorkerMiddleware;
 class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Prophecy\Prophecy\ObjectProphecy
      */
     private $request;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Prophecy\Prophecy\ObjectProphecy
      */
     private $response;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Prophecy\Prophecy\ObjectProphecy
      */
     private $container;
 
     public function setUp()
     {
-        $this->container = $this->getMock(ContainerInterface::class);
-        $this->request   = $this->getMock(ServerRequestInterface::class);
-        $this->response  = $this->getMock(ResponseInterface::class);
+        $this->container = $this->prophesize(ContainerInterface::class);
+        $this->request   = $this->prophesize(ServerRequestInterface::class);
+        $this->response  = $this->prophesize(ResponseInterface::class);
     }
 
     public function testThrowExceptionIfNoTaskMapping()
     {
         $this->setExpectedException(RuntimeException::class);
 
-        $body = json_encode(['task_name' => 'task-name', 'attributes' => []]);
-        $this->request->expects($this->once())->method('getBody')->willReturn($body);
+        $body = json_encode(['name' => 'message-name', 'payload' => []]);
+        $this->request->getBody()->shouldBeCalled()->willReturn($body);
 
-        $middleware = new WorkerMiddleware([], $this->container);
-        $middleware->__invoke($this->request, $this->response, function() {});
+        $middleware = new WorkerMiddleware([], $this->container->reveal());
+        $middleware->__invoke($this->request->reveal(), $this->response->reveal(), function() {});
     }
 
     public function testCanDispatchToMiddleware()
     {
-        $body = json_encode(['task_name' => 'task-name', 'attributes' => ['id' => 123]]);
-        $this->request->expects($this->at(0))->method('getBody')->willReturn($body);
+        $body = json_encode(['name' => 'message-name', 'payload' => ['id' => 123]]);
+        $this->request->getBody()->shouldBeCalled()->willReturn($body);
 
-        $middleware = new WorkerMiddleware(['task-name' => 'MyMiddleware'], $this->container);
+        $middleware = new WorkerMiddleware(['message-name' => 'MyMiddleware'], $this->container->reveal());
 
-        $taskMiddleware = function($request, $response) {
-          $this->assertSame($request, $this->request);
+        $messageMiddleware = function($request, $response) {
+          $this->assertSame($request, $this->request->reveal());
         };
 
-        $this->container->expects($this->once())->method('get')->with('MyMiddleware')->willReturn($taskMiddleware);
+        $this->container->get('MyMiddleware')->shouldBeCalled()->willReturn($messageMiddleware);
 
-        $this->request->expects($this->at(1))->method('getHeaderLine')->with('X-Aws-Sqsd-Queue')->willReturn('default-queue');
-        $this->request->expects($this->at(2))->method('withAttribute')->with('worker.matched_queue', 'default-queue')->willReturnSelf();
-        $this->request->expects($this->at(3))->method('getHeaderLine')->with('X-Aws-Sqsd-Msgid')->willReturn('123abc');
-        $this->request->expects($this->at(4))->method('withAttribute')->with('worker.message_id', '123abc')->willReturnSelf();
-        $this->request->expects($this->at(5))->method('withAttribute')->with('worker.message_body', ['id' => 123])->willReturnSelf();
-        $this->request->expects($this->at(6))->method('withAttribute')->with('worker.task_name', 'task-name')->willReturnSelf();
+        $this->request->getHeaderLine('X-Aws-Sqsd-Queue')->shouldBeCalled()->willReturn('default-queue');
+        $this->request->withAttribute('worker.matched_queue', 'default-queue')->shouldBeCalled()->willReturn($this->request->reveal());
+        $this->request->getHeaderLine('X-Aws-Sqsd-Msgid')->shouldBeCalled()->willReturn('123abc');
+        $this->request->withAttribute('worker.message_id', '123abc')->shouldBeCalled()->willReturn($this->request->reveal());
+        $this->request->withAttribute('worker.message_payload', ['id' => 123])->shouldBeCalled()->willReturn($this->request->reveal());
+        $this->request->withAttribute('worker.message_name', 'message-name')->shouldBeCalled()->willReturn($this->request->reveal());
 
-        $middleware->__invoke($this->request, $this->response);
+        $middleware->__invoke($this->request->reveal(), $this->response->reveal());
     }
 }

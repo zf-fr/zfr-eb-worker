@@ -37,14 +37,14 @@ First, make sure to configure the ZfrEbWorker library by adding this config:
         'second_queue' => 'https://sqs.us-east-1.amazon.com/bar'
     ],
 
-    'tasks' => [
-        'send_campaign' => SendCampaignMiddleware::class,
-        'process_image' => ProcessImageMiddleware::class
+    'messages' => [
+        'project.created' => SendCampaignMiddleware::class,
+        'image.saved'     => ProcessImageMiddleware::class
     ]
 ```
 
-The `queues` is an associative array of queue name and queue URL hosted on AWS SQS, while `tasks` is an associative array that map
-a task name to a specific middleware.
+The `queues` is an associative array of queue name and queue URL hosted on AWS SQS, while `messages` is an associative array that map
+a message name to a specific middleware.
 
 ### Configuring Elastic Beanstalk
 
@@ -59,8 +59,8 @@ then flush the queue. When flushing, the library will make sure to do as few cal
 and to multiple queues:
 
 ```php
-$queuePublisher->push('default_queue', 'process_image', ['image_id' => 123]);
-$queuePublisher->push('default_queue', 'process_image', ['image_id' => 456]);
+$queuePublisher->push('default_queue', 'image.saved', ['image_id' => 123]);
+$queuePublisher->push('default_queue', 'imave.saved', ['image_id' => 456]);
 
 // ...
 
@@ -75,23 +75,25 @@ those options are accepted:
 Example usage:
 
 ```php
-$queuePublisher->push('default_queue', 'process_image', ['image_id' => 123], ['delay_seconds' => 60]);
+$queuePublisher->push('default_queue', 'image.saved', ['image_id' => 123], ['delay_seconds' => 60]);
 ```
 
-### Retrieving task info
+Your worker then could optimize the image as a response of this event.
 
-ZfrEbWorker will automatically dispatch the incoming request to the middleware specified for the given task. The task information is
+### Retrieving message info
+
+ZfrEbWorker will automatically dispatch the incoming request to the middleware specified for the given event. The message information is
 stored inside various request attributes, as shown below:
 
 ```php
-class MyTaskMiddleware
+class MyEventMiddleware
 {
     public function __invoke($request, $response, $out)
     {
-        $queue       = $request->getAttribute('worker.matched_queue');
-        $messageId   = $request->getAttribute('worker.message_id');
-        $messageBody = $request->getAttribute('worker.message_body');
-        $taskName    = $request->getAttribute('worker.task_name');
+        $queue          = $request->getAttribute('worker.matched_queue');
+        $messageId      = $request->getAttribute('worker.message_id');
+        $messagePayload = $request->getAttribute('worker.message_payload');
+        $name           = $request->getAttribute('worker.message_name');
     }
 }
 ```

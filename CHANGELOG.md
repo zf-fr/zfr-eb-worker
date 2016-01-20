@@ -1,3 +1,11 @@
+# 3.0.0
+
+* Naming was (again, sorry...) changed to better reflect usage. Especially: 
+    * In the message added to SQS, `task_name` was renamed `name`, and `attributes` was renamed `payload`.
+    * In the configuration, config key `tasks` was renamed `messages`
+    * In the request, message payload is now retrieved using `worker.message_payload` key, while message name is retrieved
+    using `worker.message_name` key.
+
 # 2.1.0
 
 * Add a new `setQueue` method to `QueuePublisherInterface` to add new queues at runtime.

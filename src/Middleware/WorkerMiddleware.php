@@ -43,24 +43,24 @@ class WorkerMiddleware
     private $container;
 
     /**
-     * Map task names to a middleware. For instance:
+     * Map messages names to a middleware. For instance:
      *
      * [
-     *      'process_image' => ProcessImageMiddleware::class
+     *      'image.saved' => ProcessImageMiddleware::class
      * ]
      *
      * @var array
      */
-    private $taskMapping;
+    private $messagesMapping;
 
     /**
-     * @param array              $taskMapping
+     * @param array              $messagesMapping
      * @param ContainerInterface $container
      */
-    public function __construct(array $taskMapping, ContainerInterface $container)
+    public function __construct(array $messagesMapping, ContainerInterface $container)
     {
-        $this->taskMapping = $taskMapping;
-        $this->container   = $container;
+        $this->messagesMapping = $messagesMapping;
+        $this->container       = $container;
     }
 
     /**
@@ -71,37 +71,37 @@ class WorkerMiddleware
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $out = null)
     {
         // The full message is set as part of the body
-        $body     = json_decode($request->getBody(), true);
-        $taskName = $body['task_name'];
-        $message  = $body['attributes'];
+        $body    = json_decode($request->getBody(), true);
+        $name    = $body['name'];
+        $payload = $body['payload'];
 
         // Let's retrieve the correct middleware by using the mapping
-        $middleware = $this->getMiddlewareForTask($taskName);
+        $middleware = $this->getMiddlewareForMessage($name);
 
         // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request
         // attributes so they can be easier to process, and set the message attributes
         $request = $request->withAttribute('worker.matched_queue', $request->getHeaderLine('X-Aws-Sqsd-Queue'))
             ->withAttribute('worker.message_id', $request->getHeaderLine('X-Aws-Sqsd-Msgid'))
-            ->withAttribute('worker.message_body', $message)
-            ->withAttribute('worker.task_name', $taskName);
+            ->withAttribute('worker.message_payload', $payload)
+            ->withAttribute('worker.message_name', $name);
 
         return $middleware($request, $response, $out);
     }
 
     /**
-     * @param  string $taskName
+     * @param  string $messageName
      * @return callable
      */
-    private function getMiddlewareForTask(string $taskName): callable
+    private function getMiddlewareForMessage(string $messageName): callable
     {
-        if (!isset($this->taskMapping[$taskName])) {
+        if (!isset($this->messagesMapping[$messageName])) {
             throw new RuntimeException(sprintf(
-                'No middleware could be found for task "%s". Did you have properly fill
+                'No middleware could be found for message "%s". Did you have properly fill
                 the "zfr_eb_worker" configuration?',
-                $taskName
+                $messageName
             ));
         }
 
-        return $this->container->get($this->taskMapping[$taskName]);
+        return $this->container->get($this->messagesMapping[$messageName]);
     }
 }

@@ -21,7 +21,6 @@ namespace ZfrEbWorkerTest\Container;
 use Interop\Container\ContainerInterface;
 use ZfrEbWorker\Container\WorkerMiddlewareFactory;
 use ZfrEbWorker\Exception\RuntimeException;
-use ZfrEbWorker\Middleware\WorkerMiddleware;
 
 class WorkerMiddlewareFactoryTest extends \PHPUnit_Framework_TestCase
 {
@@ -29,26 +28,24 @@ class WorkerMiddlewareFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(RuntimeException::class);
 
-        $container = $this->getMock(ContainerInterface::class);
-        $container->expects($this->once())->method('get')->with('config')->willReturn([]);
+        $container = $this->prophesize(ContainerInterface::class);
+        $container->get('config')->shouldBeCalled()->willReturn([]);
 
         $factory = new WorkerMiddlewareFactory();
 
-        $factory->__invoke($container);
+        $factory->__invoke($container->reveal());
     }
 
     public function testFactory()
     {
-        $container = $this->getMock(ContainerInterface::class);
-        $container->expects($this->at(0))->method('get')->with('config')->willReturn([
+        $container = $this->prophesize(ContainerInterface::class);
+        $container->get('config')->shouldBeCalled()->willReturn([
             'zfr_eb_worker' => [
-                'tasks' => []
+                'messages' => []
             ]
         ]);
 
-        $factory        = new WorkerMiddlewareFactory();
-        $queuePublisher = $factory->__invoke($container);
-
-        $this->assertInstanceOf(WorkerMiddleware::class, $queuePublisher);
+        $factory = new WorkerMiddlewareFactory();
+        $factory->__invoke($container->reveal());
     }
 }
