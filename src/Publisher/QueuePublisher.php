@@ -90,12 +90,8 @@ class QueuePublisher implements QueuePublisherInterface
     {
         // SQS does not support flushing in batch to different queues
 
-        foreach ($this->queues as $queueName => $queueUrl) {
-            if (!isset($this->messages[$queueName])) {
-                continue;
-            }
-
-            $this->flushQueue($queueName);
+        foreach ($this->messages as $queueUrl => $messagesByQueue) {
+            $this->flushQueue($queueUrl);
         }
 
         // We reset the messages so that we make sure we don't duplicate message by calling flush multiple times
@@ -103,31 +99,29 @@ class QueuePublisher implements QueuePublisherInterface
     }
 
     /**
-     * Flush a single queue
+     * Flush a queue
      *
-     * @param  string $queue
+     * @param  string $queueUrl
      * @return void
      */
-    private function flushQueue(string $queue)
+    private function flushQueue(string $queueUrl)
     {
-        $messages = $this->messages[$queue];
+        $messages = $this->messages[$queueUrl];
 
         // SQS only supports batch of 10, so we need to splice like that
 
         while (!empty($messages)) {
             $messagesToPush = array_splice($messages, 0, 10);
-            $this->pushToQueue($queue, $messagesToPush);
+            $this->pushToQueue($queueUrl, $messagesToPush);
         }
     }
 
     /**
-     * @param string $queue
+     * @param string $queueUrl
      * @param array  $messages
      */
-    private function pushToQueue(string $queue, array $messages)
+    private function pushToQueue(string $queueUrl, array $messages)
     {
-        $queueUrl = $this->queues[$queue];
-
         $parameters = [
             'QueueUrl' => $queueUrl,
             'Entries'  => []
