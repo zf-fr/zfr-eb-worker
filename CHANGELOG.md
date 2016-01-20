@@ -1,6 +1,6 @@
 # 2.1.0
 
-* Add a new 
+* Add a new `setQueue` method to `QueuePublisherInterface` to add new queues at runtime.
 
 # 2.0.4
 
