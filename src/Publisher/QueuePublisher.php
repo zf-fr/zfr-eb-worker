@@ -86,12 +86,12 @@ class QueuePublisher implements QueuePublisherInterface
     /**
      * {@inheritDoc}
      */
-    public function flush()
+    public function flush(bool $async = false)
     {
         // SQS does not support flushing in batch to different queues
 
         foreach ($this->messages as $queueUrl => $messagesByQueue) {
-            $this->flushQueue($queueUrl);
+            $this->flushQueue($queueUrl, $async);
         }
 
         // We reset the messages so that we make sure we don't duplicate message by calling flush multiple times
@@ -102,9 +102,10 @@ class QueuePublisher implements QueuePublisherInterface
      * Flush a queue
      *
      * @param  string $queueUrl
+     * @param  bool   $async
      * @return void
      */
-    private function flushQueue(string $queueUrl)
+    private function flushQueue(string $queueUrl, bool $async)
     {
         $messages = $this->messages[$queueUrl];
 
@@ -112,15 +113,16 @@ class QueuePublisher implements QueuePublisherInterface
 
         while (!empty($messages)) {
             $messagesToPush = array_splice($messages, 0, 10);
-            $this->pushToQueue($queueUrl, $messagesToPush);
+            $this->pushToQueue($queueUrl, $messagesToPush, $async);
         }
     }
 
     /**
      * @param string $queueUrl
      * @param array  $messages
+     * @param bool   $async
      */
-    private function pushToQueue(string $queueUrl, array $messages)
+    private function pushToQueue(string $queueUrl, array $messages, bool $async)
     {
         $parameters = [
             'QueueUrl' => $queueUrl,
@@ -139,6 +141,10 @@ class QueuePublisher implements QueuePublisherInterface
             });
         }
 
-        $this->sqsClient->sendMessageBatch($parameters);
+        if ($async) {
+            $this->sqsClient->sendMessageBatchAsync($parameters);
+        } else {
+            $this->sqsClient->sendMessageBatch($parameters);
+        }
     }
 }
