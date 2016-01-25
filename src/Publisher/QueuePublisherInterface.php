@@ -56,7 +56,8 @@ interface QueuePublisherInterface
     /**
      * Flush the queue
      *
+     * @param  bool $async
      * @return void
      */
-    public function flush();
+    public function flush(bool $async = false);
 }

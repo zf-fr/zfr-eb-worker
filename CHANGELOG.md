@@ -1,3 +1,10 @@
+# 3.1.0
+
+* Add new constants for request attributes.
+* Add a new optional argument to `flush` method that allows to flush the queue asynchronously (ideal when you want to reduce
+latency).
+* Allow to set multiple middlewares for a given message (see documentation).
+
 # 3.0.0
 
 * Naming was (again, sorry...) changed to better reflect usage. Especially: 

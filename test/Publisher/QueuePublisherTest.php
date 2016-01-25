@@ -43,7 +43,18 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
         $publisher->push('unknown-queue', 'message-name');
     }
 
-    public function testCanPushToSingleQueue()
+    public function pushMode()
+    {
+        return [
+            ['async' => true],
+            ['async' => false]
+        ];
+    }
+
+    /**
+     * @dataProvider pushMode
+     */
+    public function testCanPushToSingleQueue(bool $async)
     {
         $expectedPayload = [
             'QueueUrl' => 'https://queue-url.aws.com',
@@ -61,11 +72,15 @@ class QueuePublisherTest extends \PHPUnit_Framework_TestCase
             ]
         ];
 
-        $this->sqsClient->sendMessageBatch($expectedPayload)->shouldBeCalled();
+        if ($async) {
+            $this->sqsClient->sendMessageBatchAsync($expectedPayload)->shouldBeCalled();
+        } else {
+            $this->sqsClient->sendMessageBatch($expectedPayload)->shouldBeCalled();
+        }
 
         $publisher = new QueuePublisher(['default_queue' => 'https://queue-url.aws.com'], $this->sqsClient->reveal());
         $publisher->push('default_queue', 'message-name', ['id' => 123], ['delay_seconds' => 30]);
-        $publisher->flush();
+        $publisher->flush($async);
     }
 
     public function testCanPushToSingleQueueSetLazily()
