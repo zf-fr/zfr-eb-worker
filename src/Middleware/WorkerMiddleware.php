@@ -37,6 +37,11 @@ use ZfrEbWorker\Exception\RuntimeException;
  */
 class WorkerMiddleware
 {
+    const MESSAGE_ID_ATTRIBUTE      = 'worker.message_id';
+    const MESSAGE_NAME_ATTRIBUTE    = 'worker.message_name';
+    const MESSAGE_ṔAYLOAD_ATTRIBUTE = 'worker.message_payload';
+    const MATCHED_QUEUE_ATTRIBUTE   = 'worker.matched_queue';
+
     /**
      * @var ContainerInterface
      */
@@ -80,10 +85,10 @@ class WorkerMiddleware
 
         // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request
         // attributes so they can be easier to process, and set the message attributes
-        $request = $request->withAttribute('worker.matched_queue', $request->getHeaderLine('X-Aws-Sqsd-Queue'))
-            ->withAttribute('worker.message_id', $request->getHeaderLine('X-Aws-Sqsd-Msgid'))
-            ->withAttribute('worker.message_payload', $payload)
-            ->withAttribute('worker.message_name', $name);
+        $request = $request->withAttribute(self::MATCHED_QUEUE_ATTRIBUTE, $request->getHeaderLine('X-Aws-Sqsd-Queue'))
+            ->withAttribute(self::MESSAGE_ID_ATTRIBUTE, $request->getHeaderLine('X-Aws-Sqsd-Msgid'))
+            ->withAttribute(self::MESSAGE_ṔAYLOAD_ATTRIBUTE, $payload)
+            ->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name);
 
         return $middleware($request, $response, $out);
     }
