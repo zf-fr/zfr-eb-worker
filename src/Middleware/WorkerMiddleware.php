@@ -21,16 +21,13 @@ namespace ZfrEbWorker\Middleware;
 use Interop\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use ZfrEbWorker\Exception\InvalidArgumentException;
 use ZfrEbWorker\Exception\RuntimeException;
 
 /**
  * Worker middleware
- *
- * What this thing does is extracting the message from the request, and dispatching to the proper middleware. Because
- * Zend Expressive does not have a simple way of redirecting, the simplest way is simply to fetch the corresponding
- * middleware, and do the routing here.
- *
- * You can find a complete reference of what Elastic Beanstalk set here:
+ * What this thing does is extracting the message from the request, and dispatching a pipeline of the mapped
+ * middlewares. You can find a complete reference of what Elastic Beanstalk set here:
  * http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html
  *
  * @author Michaël Gallego
@@ -48,10 +45,12 @@ class WorkerMiddleware
     private $container;
 
     /**
-     * Map messages names to a middleware. For instance:
-     *
+     * Map message names to a list middleware names. For instance:
      * [
-     *      'image.saved' => ProcessImageMiddleware::class
+     *     'image.saved' => [
+     *         WorkerAuthenticationMiddleware::class,
+     *         ProcessImageMiddleware::class,
+     *     ],
      * ]
      *
      * @var array
@@ -72,16 +71,21 @@ class WorkerMiddleware
      * @param ServerRequestInterface $request
      * @param ResponseInterface      $response
      * @param callable|null          $out
+     *
+     * @return ResponseInterface
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $out = null)
-    {
+    public function __invoke(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        callable $out = null
+    ): ResponseInterface {
         // The full message is set as part of the body
         $body    = json_decode($request->getBody(), true);
         $name    = $body['name'];
         $payload = $body['payload'];
 
-        // Let's retrieve the correct middleware by using the mapping
-        $middleware = $this->getMiddlewareForMessage($name);
+        // Let's create a middleware pipeline of mapped middlewares
+        $pipeline = $this->createMiddlewarePipeline($name, $out);
 
         // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request
         // attributes so they can be easier to process, and set the message attributes
@@ -90,23 +94,55 @@ class WorkerMiddleware
             ->withAttribute(self::MESSAGE_PAYLOAD_ATTRIBUTE, $payload)
             ->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name);
 
-        return $middleware($request, $response, $out);
+        return $pipeline($request, $response);
     }
 
     /**
-     * @param  string $messageName
+     * @param string        $messageName
+     * @param callable|null $out
+     *
      * @return callable
      */
-    private function getMiddlewareForMessage(string $messageName): callable
+    private function createMiddlewarePipeline(string $messageName, callable $out = null): callable
     {
         if (!isset($this->messagesMapping[$messageName])) {
             throw new RuntimeException(sprintf(
-                'No middleware could be found for message "%s". Did you have properly fill
-                the "zfr_eb_worker" configuration?',
+                'No middleware was mapped for message "%s". Did you fill the "zfr_eb_worker" configuration?',
                 $messageName
             ));
         }
 
-        return $this->container->get($this->messagesMapping[$messageName]);
+        $mappedMiddlewares = $this->messagesMapping[$messageName];
+
+        if (is_string($mappedMiddlewares)) {
+            $mappedMiddlewares = (array) $mappedMiddlewares;
+        }
+
+        if (!is_array($mappedMiddlewares)) {
+            throw new InvalidArgumentException(sprintf(
+                'Mapped middleware must be either a string or an array of strings, %s given.',
+                is_object($mappedMiddlewares) ? get_class($mappedMiddlewares) : gettype($mappedMiddlewares)
+            ));
+        }
+
+        $pipeline = function (
+            ServerRequestInterface $request,
+            ResponseInterface $response
+        ) use (
+            &$pipeline,
+            &$mappedMiddlewares,
+            $out
+        ) {
+            if (empty($mappedMiddlewares)) {
+                return is_callable($out) ? $out($request, $response) : $response;
+            }
+
+            /** @var callable $middleware */
+            $middleware = $this->container->get(array_shift($mappedMiddlewares));
+
+            return $middleware($request, $response, $pipeline);
+        };
+
+        return $pipeline;
     }
 }
