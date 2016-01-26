@@ -21,64 +21,140 @@ namespace ZfrEbWorkerTest\Middleware;
 use Interop\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\Response;
+use Zend\Diactoros\ServerRequest;
+use Zend\Diactoros\Stream;
+use ZfrEbWorker\Exception\InvalidArgumentException;
 use ZfrEbWorker\Exception\RuntimeException;
 use ZfrEbWorker\Middleware\WorkerMiddleware;
 
 class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @var \Prophecy\Prophecy\ObjectProphecy
-     */
-    private $request;
-
-    /**
-     * @var \Prophecy\Prophecy\ObjectProphecy
-     */
-    private $response;
-
-    /**
-     * @var \Prophecy\Prophecy\ObjectProphecy
-     */
-    private $container;
-
-    public function setUp()
+    public function testThrowsExceptionIfNoMappedMiddleware()
     {
-        $this->container = $this->prophesize(ContainerInterface::class);
-        $this->request   = $this->prophesize(ServerRequestInterface::class);
-        $this->response  = $this->prophesize(ResponseInterface::class);
+        $middleware = new WorkerMiddleware([], $this->prophesize(ContainerInterface::class)->reveal());
+
+        $this->setExpectedException(
+            RuntimeException::class,
+            'No middleware was mapped for message "message-name". Did you fill the "zfr_eb_worker" configuration?'
+        );
+
+        $middleware($this->createRequest(), new Response(), function() {
+            $this->fail('$next should not be called');
+        });
     }
 
-    public function testThrowExceptionIfNoTaskMapping()
+    public function testThrowsExceptionIfInvalidMappedMiddlewareType()
     {
-        $this->setExpectedException(RuntimeException::class);
+        $middleware = new WorkerMiddleware(['message-name' => 10], $this->prophesize(ContainerInterface::class)->reveal());
 
-        $body = json_encode(['name' => 'message-name', 'payload' => []]);
-        $this->request->getBody()->shouldBeCalled()->willReturn($body);
+        $this->setExpectedException(
+            InvalidArgumentException::class,
+            'Mapped middleware must be either a string or an array of strings, integer given.'
+        );
 
-        $middleware = new WorkerMiddleware([], $this->container->reveal());
-        $middleware->__invoke($this->request->reveal(), $this->response->reveal(), function() {});
+        $middleware($this->createRequest(), new Response(), function() {
+            $this->fail('$next should not be called');
+        });
     }
 
-    public function testCanDispatchToMiddleware()
+    public function testThrowsExceptionIfInvalidMappedMiddlewareClass()
     {
-        $body = json_encode(['name' => 'message-name', 'payload' => ['id' => 123]]);
-        $this->request->getBody()->shouldBeCalled()->willReturn($body);
+        $middleware = new WorkerMiddleware(['message-name' => new \stdClass()], $this->prophesize(ContainerInterface::class)->reveal());
 
-        $middleware = new WorkerMiddleware(['message-name' => 'MyMiddleware'], $this->container->reveal());
+        $this->setExpectedException(
+            InvalidArgumentException::class,
+            'Mapped middleware must be either a string or an array of strings, stdClass given.'
+        );
 
-        $messageMiddleware = function($request, $response) {
-          $this->assertSame($request, $this->request->reveal());
+        $middleware($this->createRequest(), new Response(), function() {
+            $this->fail('$next should not be called');
+        });
+    }
+
+    /**
+     * @dataProvider mappedMiddlewaresProvider
+     *
+     * @param array|string $mappedMiddlewares
+     * @param int          $expectedCounter
+     */
+    public function testDispatchesMappedMiddlewares($mappedMiddlewares, int $expectedCounter)
+    {
+        $container  = $this->prophesize(ContainerInterface::class);
+        $middleware = new WorkerMiddleware(['message-name' => $mappedMiddlewares], $container->reveal());
+        $request    = $this->createRequest();
+        $response   = new Response();
+
+        if (is_string($mappedMiddlewares)) {
+            $mappedMiddlewares = (array) $mappedMiddlewares;
+        }
+
+        foreach ($mappedMiddlewares as $mappedMiddleware) {
+            $container->get($mappedMiddleware)->shouldBeCalled()->willReturn([$this, 'incrementMiddleware']);
+        }
+
+        $outWasCalled    = false;
+        $responseFromOut = new Response();
+
+        $out = function ($request, ResponseInterface $response) use (&$outWasCalled, $expectedCounter, $responseFromOut) {
+            $outWasCalled = true;
+
+            $this->assertEquals('default-queue', $request->getAttribute(WorkerMiddleware::MATCHED_QUEUE_ATTRIBUTE));
+            $this->assertEquals('123abc', $request->getAttribute(WorkerMiddleware::MESSAGE_ID_ATTRIBUTE));
+            $this->assertEquals('message-name', $request->getAttribute(WorkerMiddleware::MESSAGE_NAME_ATTRIBUTE));
+            $this->assertEquals(['id' => 123], $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE));
+            $this->assertEquals($expectedCounter, $request->getAttribute('counter', 0));
+            $this->assertEquals($expectedCounter, $response->hasHeader('counter') ? $response->getHeaderLine('counter') : 0);
+
+            return $responseFromOut;
         };
 
-        $this->container->get('MyMiddleware')->shouldBeCalled()->willReturn($messageMiddleware);
+        $returnedResponse = $middleware($request, $response, $out);
 
-        $this->request->getHeaderLine('X-Aws-Sqsd-Queue')->shouldBeCalled()->willReturn('default-queue');
-        $this->request->withAttribute('worker.matched_queue', 'default-queue')->shouldBeCalled()->willReturn($this->request->reveal());
-        $this->request->getHeaderLine('X-Aws-Sqsd-Msgid')->shouldBeCalled()->willReturn('123abc');
-        $this->request->withAttribute('worker.message_id', '123abc')->shouldBeCalled()->willReturn($this->request->reveal());
-        $this->request->withAttribute('worker.message_payload', ['id' => 123])->shouldBeCalled()->willReturn($this->request->reveal());
-        $this->request->withAttribute('worker.message_name', 'message-name')->shouldBeCalled()->willReturn($this->request->reveal());
+        $this->assertTrue($outWasCalled, 'Make sure that $out middleware was called');
+        $this->assertSame($responseFromOut, $returnedResponse, 'Make sure that it returns response from $out');
+    }
 
-        $middleware->__invoke($this->request->reveal(), $this->response->reveal());
+    public function testReturnsResponseIfNoOutMiddlewareIsProvided()
+    {
+        $middleware = new WorkerMiddleware(['message-name' => []], $this->prophesize(ContainerInterface::class)->reveal());
+        $request    = $this->createRequest();
+        $response   = new Response();
+
+        $returnedResponse = $middleware($request, $response);
+
+        $this->assertSame($response, $returnedResponse);
+    }
+
+    public function incrementMiddleware(ServerRequestInterface $request, ResponseInterface $response, callable $next): ResponseInterface
+    {
+        $counter  = $request->getAttribute('counter', 0) + 1;
+        $request  = $request->withAttribute('counter', $counter);
+        $response = $response->withHeader('counter', (string) $counter);
+
+        return $next($request, $response);
+    }
+
+    public function mappedMiddlewaresProvider(): array
+    {
+        return [
+            [[], 0],
+            ['FooMiddleware', 1],
+            [['FooMiddleware'], 1],
+            [['FooMiddleware', 'BarMiddleware'], 2],
+            [['FooMiddleware', 'BarMiddleware', 'BazMiddleware'], 3],
+        ];
+    }
+
+    private function createRequest(): ServerRequestInterface
+    {
+        $request = new ServerRequest();
+        $request = $request->withHeader('X-Aws-Sqsd-Queue', 'default-queue');
+        $request = $request->withHeader('X-Aws-Sqsd-Msgid', '123abc');
+        $request = $request->withBody(new Stream('php://temp', 'w'));
+
+        $request->getBody()->write(json_encode(['name' => 'message-name', 'payload' => ['id' => 123]]));
+
+        return $request;
     }
 }
