@@ -25,18 +25,7 @@ namespace ZfrEbWorker;
  * config as part of your application config
  *
  * @author Michaël Gallego
- * @deprecated Use ZfrEbWorker\ModuleConfig instead
  */
-class AppConfig
+class ModuleConfig extends AppConfig
 {
-    /**
-     * @return array
-     */
-    public function __invoke(): array
-    {
-        return array_merge_recursive(
-            require_once __DIR__ . '/../config/dependencies.global.php',
-            require_once __DIR__ . '/../config/routes.global.php'
-        );
-    }
 }
