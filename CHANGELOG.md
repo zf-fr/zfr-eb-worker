@@ -1,3 +1,8 @@
+# 3.2.0
+
+* Deprecate the `AppConfig` configuration provider, use `ModuleConfig` instead (for better reflect distinction between app and
+reusable code).
+
 # 3.1.0
 
 * Add new constants for request attributes.
