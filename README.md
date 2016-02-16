@@ -115,3 +115,16 @@ class MyEventMiddleware
 Elastic Beanstalk also supports periodic tasks through the usage of `cron.yaml` file. However, this is actually easier as you can
 specify a different URL on a task-basis. Therefore, you can dispatch to the URL of your choice and immediately be re-routed to the
 correct middleware.
+
+### How to silently ignore some message?
+
+When ZfrEbWorker don't find a mapped middleware to handle a message, it throws a `RuntimeException`, which makes Elastic
+Beanstalk retry the message again later. However if you don't want to handle a specific message and don't Elastic
+Beanstalk to retry it later, you should map SilentFailingListener to the message, like that:
+
+```php
+'zfr_eb_worker' => [
+    'messages' => [
+        'user.updated' => ZfrEbWorker\Listener\SilentFailingListener::class,
+    ]
+```
