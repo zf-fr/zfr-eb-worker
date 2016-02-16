@@ -119,7 +119,7 @@ correct middleware.
 ### How to silently ignore some message?
 
 When ZfrEbWorker don't find a mapped middleware to handle a message, it throws a `RuntimeException`, which makes Elastic
-Beanstalk retry the message again later. However if you don't want to handle a specific message and don't Elastic
+Beanstalk retry the message again later. However if you don't want to handle a specific message and don't want Elastic
 Beanstalk to retry it later, you should map SilentFailingListener to the message, like that:
 
 ```php
