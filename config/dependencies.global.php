@@ -1,6 +1,8 @@
 <?php
 
+use ZfrEbWorker\Cli\WorkerCommand;
 use ZfrEbWorker\Container\QueuePublisherFactory;
+use ZfrEbWorker\Container\WorkerCommandFactory;
 use ZfrEbWorker\Container\WorkerMiddlewareFactory;
 use ZfrEbWorker\Publisher\QueuePublisher;
 use ZfrEbWorker\Middleware\WorkerMiddleware;
@@ -14,21 +16,8 @@ return [
 
         'factories' => [
             QueuePublisher::class   => QueuePublisherFactory::class,
-            WorkerMiddleware::class => WorkerMiddlewareFactory::class
+            WorkerCommand::class    => WorkerCommandFactory::class,
+            WorkerMiddleware::class => WorkerMiddlewareFactory::class,
         ]
     ],
-
-    'zfr_eb_worker' => [
-        /**
-         * Array of queue name => queue URL
-         */
-
-        'queues' => [],
-
-        /**
-         * Array of messages names => middlewares to execute
-         */
-
-        'messages' => []
-    ]
 ];

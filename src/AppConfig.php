@@ -35,6 +35,7 @@ class AppConfig
     public function __invoke(): array
     {
         return array_merge_recursive(
+            require_once __DIR__ . '/../config/config.global.php',
             require_once __DIR__ . '/../config/dependencies.global.php',
             require_once __DIR__ . '/../config/routes.global.php'
         );

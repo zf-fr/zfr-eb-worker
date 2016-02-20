@@ -14,7 +14,7 @@ ZfrEbWorker is a simple abstraction around SQS, aims to simplify the creation of
 Installation of ZfrEbWorker is only officially supported using Composer:
 
 ```sh
-php composer.phar require 'zfr/zfr-eb-worker:2.*'
+php composer.phar require 'zfr/zfr-eb-worker:3.*'
 ```
 
 ## How Elastic Beanstalk work?
@@ -27,6 +27,13 @@ have any "deleteMessage".
 ## Usage
 
 ### Library configuration
+
+#### AWS configuration
+
+ZfrEbWorker expects that you registers the `Aws\Sdk` class to the container of your choice. You are free to configure the SDK the way
+you prefer, so ZfrEbWorker does not come with a default factory for that.
+
+#### Worker configuration
 
 First, make sure to configure the ZfrEbWorker library by adding this config:
 
@@ -115,3 +122,69 @@ class MyEventMiddleware
 Elastic Beanstalk also supports periodic tasks through the usage of `cron.yaml` file. However, this is actually easier as you can
 specify a different URL on a task-basis. Therefore, you can dispatch to the URL of your choice and immediately be re-routed to the
 correct middleware.
+
+### Using the local worker
+
+Starting from version 3.3, ZfrEbWorker comes with a Symfony CLI command that allows to emulate the usage of native Elastic Beanstalk
+worker. In order to use it, you must do various things:
+
+#### Add the dependencies
+
+Make sure that you add those two dependencies in your project (typically, in the `require-dev` section of your `composer.json` file):
+
+```json
+{
+  "require-dev": {
+    "symfony/console": "^3.0",
+    "guzzlehttp/guzzle": "^6.0"
+  }
+}
+```
+
+#### Adding a console entry point
+
+ZfrEbWorker adds the `WorkerCommand` Symfony CLI command into the `console` top-key of the config. If you are using this library
+with a framework that already uses Symfony CLI, just add the `ZfrEbWorker\Cli\WorkerCommand` command.
+
+If you are using Zend\Expressive, here is a sample file (call it `console.php` for instance) you can add into the `public` folder, 
+alongside your `index.php` file:
+
+```php
+require_once 'vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Zend\ServiceManager\ServiceManager;
+use ZfrEbWorker\ModuleConfig;
+
+$config = (new ModuleConfig())->__invoke();
+
+// Build container
+$container = new ServiceManager($config['dependencies']);
+
+// Inject config
+$container->setService('config', $config);
+
+$application = new Application('Application console');
+
+$commands = $container->get('config')['console']['commands'];
+
+foreach ($commands as $command) {
+    $application->add($container->get($command));
+}
+
+$application->run();
+```
+
+#### Add IAM permissions
+
+In order to allow the local worker to work, you'll need to add the `sqs:GetQueueUrl`, `sqs:ReceiveMessage` and `sqs:DeleteMessage` permissions
+to the IAM user you are using locally.
+
+#### Use the tool
+
+You can now write the command `php console.php eb-worker --server=http://localhost --queue=my-queue`. This code will automatically poll
+the queue called `my-queue`, and push messages to the URL indicated by the `server` option with the `/internal/worker` path added (as this
+is the default ZfrEbWorker configuration).
+
+Therefore, in this example, the local worker will make a POST request to `http://localhost/internal/worker` whenever a new message is
+added. The local worker behaves exactly the same way the native Elastic Beanstalk worker does, and adds all the same HTTP headers.

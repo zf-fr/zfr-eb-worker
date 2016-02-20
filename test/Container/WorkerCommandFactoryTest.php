@@ -16,19 +16,26 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrEbWorkerTest;
+namespace ZfrEbWorkerTest\Container;
 
-use ZfrEbWorker\AppConfig;
+use Aws\Sdk as AwsSdk;
+use Aws\Sqs\SqsClient;
+use Interop\Container\ContainerInterface;
+use ZfrEbWorker\Container\WorkerCommandFactory;
 
-class AppConfigTest extends \PHPUnit_Framework_TestCase
+class WorkerCommandFactoryTest extends \PHPUnit_Framework_TestCase
 {
-    public function testConfig()
+    public function testFactory()
     {
-        $config = (new AppConfig())->__invoke();
+        $container = $this->prophesize(ContainerInterface::class);
+        $sqsClient = $this->prophesize(SqsClient::class);
 
-        $this->assertArrayHasKey('dependencies', $config);
-        $this->assertArrayHasKey('routes', $config);
-        $this->assertArrayHasKey('zfr_eb_worker', $config);
-        $this->assertArrayHasKey('console', $config);
+        $awsSdk = $this->prophesize(AwsSdk::class);
+        $awsSdk->createSqs()->shouldBeCalled()->willReturn($sqsClient->reveal());
+
+        $container->get(AwsSdk::class)->shouldBeCalled()->willReturn($awsSdk->reveal());
+
+        $factory = new WorkerCommandFactory();
+        $factory->__invoke($container->reveal());
     }
 }
