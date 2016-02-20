@@ -33,6 +33,64 @@ have any "deleteMessage".
 ZfrEbWorker expects that you registers the `Aws\Sdk` class to the container of your choice. You are free to configure the SDK the way
 you prefer, so ZfrEbWorker does not come with a default factory for that.
 
+As an example, here is a simple `ContainerInterop` compatible factory:
+
+```php
+<?php
+
+use Aws\Sdk as AwsSdk;
+use Interop\Container\ContainerInterface;
+use RuntimeException;
+
+class AwsSdkFactory
+{
+    /**
+     * @param  ContainerInterface $container
+     * @return AwsSdk
+     */
+    public function __invoke(ContainerInterface $container): AwsSdk
+    {
+        $config = $container->get('config');
+
+        if (!isset($config['aws'])) {
+            throw new RuntimeException('Key "aws" is missing');
+        }
+
+        return new AwsSdk($config['aws']);
+    }
+}
+```
+
+Then register your factory (this example is using the Zend\ServiceManager style config):
+
+```php
+use Aws\Sdk as AwsSdk;
+
+return [
+    'dependencies' => [
+        'factories' => [
+            AwsSdk::class => AwsSdkFactory::class
+        ]
+    ]
+];
+```
+
+Finally, modify your configuration to add the `aws` key to your config file (then, follows the official AWS SDK documentation
+to know all the possible keys):
+
+```php
+return [
+    'aws' => [
+        'region'      => 'us-east-1', // Replace by your region
+        'Sqs'         => ['version' => '2012-11-05'], // Add all your other services
+        'credentials' => [
+            'key'    => 'YOUR_USER_KEY',
+            'secret' => 'YOUR_SECRET_KEY'
+        ]
+    ]
+];
+```
+
 #### Worker configuration
 
 First, make sure to configure the ZfrEbWorker library by adding this config:
