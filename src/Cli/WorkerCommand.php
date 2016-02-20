@@ -86,7 +86,7 @@ class WorkerCommand extends Command
             $queueUrl = $this->sqsClient->getQueueUrl(['QueueName' => $queueName])['QueueUrl'];
         } catch (SqsException $exception) {
             $output->writeln(sprintf(
-                '<error>Impossible to retrieve URL for queue "%s". Reason: %s',
+                '<error>Impossible to retrieve URL for queue "%s". Reason: %s</error>',
                 $queueName,
                 $exception->getMessage()
             ));
@@ -113,7 +113,7 @@ class WorkerCommand extends Command
     /**
      * Process a single message and push it to the server URL
      *
-     * @link   http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html#worker-environ
+     * @link   http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html
      * @param  array           $message
      * @param  string          $server
      * @param  string          $queueName
@@ -121,8 +121,13 @@ class WorkerCommand extends Command
      * @param  OutputInterface $output
      * @return void
      */
-    private function processMessage(array $message, string $server, string $queueName, string $queueUrl, OutputInterface $output)
-    {
+    private function processMessage(
+        array $message,
+        string $server,
+        string $queueName,
+        string $queueUrl,
+        OutputInterface $output
+    ) {
         $response = $this->httpClient->post(rtrim($server, '/') . '/internal/worker', [
             'headers' => [
                 'User-Agent'                   => 'aws-sqsd/2.0',
