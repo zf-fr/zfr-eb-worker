@@ -1,3 +1,8 @@
+# 3.3.0
+
+* Add a new local worker that allows to simulate locally the Elastic Beanstalk worker. This new worker should only be used for
+development, never in production.
+
 # 3.2.0
 
 * Deprecate the `AppConfig` configuration provider, use `ModuleConfig` instead (for better reflect distinction between app and

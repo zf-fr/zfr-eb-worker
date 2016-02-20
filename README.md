@@ -128,6 +128,9 @@ correct middleware.
 Starting from version 3.3, ZfrEbWorker comes with a Symfony CLI command that allows to emulate the usage of native Elastic Beanstalk
 worker. In order to use it, you must do various things:
 
+> This local worker is only meant to be used in development. In production, you should use the native Elastic Beanstalk worker, which
+is much faster (retrieves up to 10 messages in one SQS call) and is built-in into the Elastic Beanstalk AMI (it is monitored...).
+
 #### Add the dependencies
 
 Make sure that you add those two dependencies in your project (typically, in the `require-dev` section of your `composer.json` file):
