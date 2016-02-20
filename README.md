@@ -194,13 +194,19 @@ Elastic Beanstalk also supports periodic tasks through the usage of `cron.yaml` 
 specify a different URL on a task-basis. Therefore, you can dispatch to the URL of your choice and immediately be re-routed to the
 correct middleware.
 
-### Using the local worker
+## CLI commands
 
-Starting from version 3.3, ZfrEbWorker comes with a Symfony CLI command that allows to emulate the usage of native Elastic Beanstalk
-worker. In order to use it, you must do various things:
+Starting from version 3.3, ZfrEbWorker comes with Symfony CLI commands that allows:
+ 
+* to easily push messages into a queue that respect the ZfrEbWorker format.
+* to emulate the usage of native Elastic Beanstalk worker to fetch messages and execute them.
 
 > This local worker is only meant to be used in development. In production, you should use the native Elastic Beanstalk worker, which
 is much faster (retrieves up to 10 messages in one SQS call) and is built-in into the Elastic Beanstalk AMI (it is monitored...).
+
+### Setup
+
+Before using those CLI commands, there are some things you need to setup, as described in following sections.
 
 #### Add the dependencies
 
@@ -217,8 +223,8 @@ Make sure that you add those two dependencies in your project (typically, in the
 
 #### Adding a console entry point
 
-ZfrEbWorker adds the `WorkerCommand` Symfony CLI command into the `console` top-key of the config. If you are using this library
-with a framework that already uses Symfony CLI, just add the `ZfrEbWorker\Cli\WorkerCommand` command.
+ZfrEbWorker adds the `WorkerCommand` and `PublisherCommand` Symfony CLI command into the `console` top-key of the config. If you are using this library
+with a framework that already uses Symfony CLI, just add the `ZfrEbWorker\Cli\WorkerCommand` and/or `ZfrEbWorker\Cli\PublisherCommand` commands.
 
 If you are using Zend\Expressive, here is a sample file (call it `console.php` for instance) you can add into the `public` folder, 
 alongside your `index.php` file:
@@ -251,10 +257,34 @@ $application->run();
 
 #### Add IAM permissions
 
-In order to allow the local worker to work, you'll need to add the `sqs:GetQueueUrl`, `sqs:ReceiveMessage` and `sqs:DeleteMessage` permissions
-to the IAM user you are using locally.
+In order to allow the local worker to work, you'll need to add the `sqs:GetQueueUrl`, `sqs:ReceiveMessage`, `sqs:DeleteMessage` and
+`sqs:SendMessage` permissions to the IAM user you are using locally.
 
-#### Use the tool
+> For security reasons, we recommend you to have production and development queues, so that your development IAM user only have access to the
+development queue and cannot mess with the production queue.
+
+### PublisherCommand
+
+This command allows to easily add messages into an Elastic Beanstalk worker.
+
+Use the following command: `php console.php eb-publisher --payload="foo=bar&bar=baz" --queue=my-queue --name=user.created`
+
+The `payload` key supports an HTML-like query param, so if you want to add the following JSON:
+
+```json
+{
+  "user": {
+    "first_name": "John",
+    "last_name": "Doe"
+  }
+}
+```
+
+You can use the following payload: `--payload='user[first_name]=John&user[last_name]=Doe'`
+
+### WorkerCommand
+
+This command allows to simulate the native Elastic Beanstalk worker.
 
 You can now write the command `php console.php eb-worker --server=http://localhost --queue=my-queue`. This code will automatically poll
 the queue called `my-queue`, and push messages to the URL indicated by the `server` option with the `/internal/worker` path added (as this

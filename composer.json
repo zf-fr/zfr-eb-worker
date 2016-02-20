@@ -31,8 +31,8 @@
         "guzzlehttp/guzzle": "^6.0"
     },
     "suggest": {
-        "symfony/console": "If you want to use the local worker (^3.0)",
-        "guzzlehttp/guzzle": "If you want to use the local worker (^6.0)"
+        "symfony/console": "If you want to use the CLI local worker and publisher (^3.0)",
+        "guzzlehttp/guzzle": "If you want to use the CLI local worker and publisher (^6.0)"
     },
     "autoload": {
         "psr-4": {

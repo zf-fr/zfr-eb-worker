@@ -1,5 +1,6 @@
 <?php
 
+use ZfrEbWorker\Cli\PublisherCommand;
 use ZfrEbWorker\Cli\WorkerCommand;
 
 return [
@@ -19,7 +20,8 @@ return [
 
     'console' => [
         'commands' => [
-            WorkerCommand::class
+            WorkerCommand::class,
+            PublisherCommand::class
         ]
     ],
 ];
