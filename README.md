@@ -117,6 +117,19 @@ class MyEventMiddleware
 }
 ```
 
+### How to silently ignore some message?
+
+When ZfrEbWorker don't find a mapped middleware to handle a message, it throws a `RuntimeException`, which makes Elastic
+Beanstalk retry the message again later. However if you don't want to handle a specific message and don't want Elastic
+Beanstalk to retry it later, you should map SilentFailingListener to the message, like that:
+
+```php
+'zfr_eb_worker' => [
+    'messages' => [
+        'user.updated' => ZfrEbWorker\Listener\SilentFailingListener::class,
+    ]
+```
+
 ### How to use periodic tasks?
 
 Elastic Beanstalk also supports periodic tasks through the usage of `cron.yaml` file. However, this is actually easier as you can

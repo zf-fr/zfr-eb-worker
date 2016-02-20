@@ -1,5 +1,6 @@
 # 3.3.0
 
+* Add a new `SilentFailingListener` class that you can use if you don't want to handle a specific message.
 * Add a new local worker that allows to simulate locally the Elastic Beanstalk worker. This new worker should only be used for
 development, never in production.
 
