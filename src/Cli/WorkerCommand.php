@@ -60,7 +60,14 @@ class WorkerCommand extends Command
                 'server',
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Server to which requests are redirected'
+                'Server URL to which requests are redirected'
+            )
+            ->addOption(
+                'path',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Path to add to the server URL',
+                '/internal/worker'
             )
             ->addOption(
                 'queue',
@@ -79,7 +86,6 @@ class WorkerCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $server    = $input->getOption('server');
         $queueName = $input->getOption('queue');
 
         try {
@@ -94,6 +100,8 @@ class WorkerCommand extends Command
             return;
         }
 
+        $uri = rtrim($input->getOption('server'), '/') . '/' . ltrim($input->getOption('path'), '/');
+
         while (true) {
             $messages = $this->sqsClient->receiveMessage([
                 'QueueUrl'            => $queueUrl,
@@ -106,7 +114,7 @@ class WorkerCommand extends Command
                 continue;
             }
 
-            $this->processMessage($messages['Messages'][0], $server, $queueName, $queueUrl, $output);
+            $this->processMessage($messages['Messages'][0], $uri, $queueName, $queueUrl, $output);
         }
     }
 
@@ -115,7 +123,7 @@ class WorkerCommand extends Command
      *
      * @link   http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html
      * @param  array           $message
-     * @param  string          $server
+     * @param  string          $uri
      * @param  string          $queueName
      * @param  string          $queueUrl
      * @param  OutputInterface $output
@@ -123,12 +131,12 @@ class WorkerCommand extends Command
      */
     private function processMessage(
         array $message,
-        string $server,
+        string $uri,
         string $queueName,
         string $queueUrl,
         OutputInterface $output
     ) {
-        $response = $this->httpClient->post(rtrim($server, '/') . '/internal/worker', [
+        $response = $this->httpClient->post($uri, [
             'headers' => [
                 'User-Agent'                   => 'aws-sqsd/2.0',
                 'Content-Type'                 => 'application/json',

@@ -55,6 +55,7 @@ class WorkerCommandTest extends \PHPUnit_Framework_TestCase
         $inputDefinition = $this->workerCommand->getDefinition();
 
         $this->assertTrue($inputDefinition->hasOption('server'));
+        $this->assertTrue($inputDefinition->hasOption('path'));
         $this->assertTrue($inputDefinition->hasOption('queue'));
     }
 
@@ -62,8 +63,7 @@ class WorkerCommandTest extends \PHPUnit_Framework_TestCase
     {
         $input  = $this->prophesize(InputInterface::class);
         $output = $this->prophesize(OutputInterface::class);
-
-        $input->getOption('server')->shouldBeCalled()->willReturn('http://localhost');
+        
         $input->getOption('queue')->shouldBeCalled()->willReturn('default');
 
         $this->sqsClient->getQueueUrl(['QueueName' => 'default'])->shouldBeCalled()->willThrow(SqsException::class);
