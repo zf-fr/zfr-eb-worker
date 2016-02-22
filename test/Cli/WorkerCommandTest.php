@@ -21,6 +21,7 @@ namespace ZfrEbWorker\Cli;
 use Aws\Sqs\Exception\SqsException;
 use Aws\Sqs\SqsClient;
 use GuzzleHttp\Client as HttpClient;
+use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -66,6 +67,8 @@ class WorkerCommandTest extends \PHPUnit_Framework_TestCase
         $input->getOption('queue')->shouldBeCalled()->willReturn('default');
 
         $this->sqsClient->getQueueUrl(['QueueName' => 'default'])->shouldBeCalled()->willThrow(SqsException::class);
+
+        $output->writeln(Argument::containingString('<error>Impossible to retrieve URL for queue "default"'))->shouldBeCalled();
 
         $this->executeCommand($input, $output);
     }

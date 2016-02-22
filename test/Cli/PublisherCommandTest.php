@@ -20,6 +20,7 @@ namespace ZfrEbWorker\Cli;
 
 use Aws\Sqs\Exception\SqsException;
 use Aws\Sqs\SqsClient;
+use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -68,6 +69,8 @@ class PublisherCommandTest extends \PHPUnit_Framework_TestCase
 
         $this->sqsClient->getQueueUrl(['QueueName' => 'default'])->shouldBeCalled()->willThrow(SqsException::class);
 
+        $output->writeln(Argument::containingString('<error>Impossible to retrieve URL for queue "default"'))->shouldBeCalled();
+
         $this->executeCommand($input, $output);
     }
 
@@ -84,15 +87,15 @@ class PublisherCommandTest extends \PHPUnit_Framework_TestCase
             'QueueUrl' => 'https://sqs.amazonaws.com'
         ]);
 
-        $this->queuePublisher->setQueue('default', 'https://sqs.amazonaws.com');
+        $this->queuePublisher->setQueue('default', 'https://sqs.amazonaws.com')->shouldBeCalled();
         $this->queuePublisher->push('default', 'user.created', [
             'key'  => 'value',
             'user' => [
                 'first_name' => 'John',
                 'last_name'  => 'Doe'
             ]
-        ]);
-        $this->queuePublisher->flush();
+        ])->shouldBeCalled();
+        $this->queuePublisher->flush()->shouldBeCalled();
 
         $this->executeCommand($input, $output);
     }

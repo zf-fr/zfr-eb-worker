@@ -230,19 +230,15 @@ If you are using Zend\Expressive, here is a sample file (call it `console.php` f
 alongside your `index.php` file:
 
 ```php
-require_once 'vendor/autoload.php';
-
 use Symfony\Component\Console\Application;
 use Zend\ServiceManager\ServiceManager;
 use ZfrEbWorker\ModuleConfig;
 
-$config = (new ModuleConfig())->__invoke();
+chdir(dirname(__DIR__));
+require 'vendor/autoload.php';
 
-// Build container
-$container = new ServiceManager($config['dependencies']);
-
-// Inject config
-$container->setService('config', $config);
+/** @var \Interop\Container\ContainerInterface $container */
+$container = require 'config/container.php';
 
 $application = new Application('Application console');
 

@@ -73,7 +73,7 @@ class PublisherCommand extends Command
                 'queue',
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Queue name to pull messages from'
+                'Queue name to publish for'
             );
     }
 
