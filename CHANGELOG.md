@@ -1,3 +1,10 @@
+# 3.3.0
+
+* Add a new `SilentFailingListener` class that you can use if you don't want to handle a specific message.
+* Add a CLI command that simulate locally the Elastic Beanstalk worker. This new worker should only be used for
+development, never in production.
+* Add a CLI command that allows to easily push messages to a given queue which respects the ZfrEbWorker structure.
+
 # 3.2.0
 
 * Deprecate the `AppConfig` configuration provider, use `ModuleConfig` instead (for better reflect distinction between app and
