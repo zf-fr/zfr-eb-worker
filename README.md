@@ -165,15 +165,12 @@ $queue->flush();
 The `push` method accepts as a first argument a `MessageInterface` object, which is a thin wrapper for both a message
 name and payload. ZfrEbWorker provides a default `Message` class.
 
-The `push` method also accepts a second optional array parameters, where you can add specific info on a per-message basis. As
-of now, those options are accepted:
-
-* `delay_delay`: specify how many seconds before the message can be pulled from the first time by SQS. The maximum value is 900 (15 minutes).
+You can also push delayed message (up to 600 seconds) by using the specialized DelayedMessage class:
 
 Example usage:
 
 ```php
-$queue->push(new Message('image.saved', ['image_id' => 123]), ['delay_seconds' => 60]);
+$queue->push(new DelayedMessage('image.saved', ['image_id' => 123], 60));
 ```
 
 ### Retrieving message info
