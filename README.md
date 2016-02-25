@@ -133,7 +133,7 @@ on this URL.
 
 You can push messages by injecting a `MessageQueueInterface` object into your classes.
 
-You can create a queue easily, pre-configured, by using the `MessageQueueRepositoryInterface` class. For instance, assuming 
+You can create a queue easily, pre-configured, by using a `MessageQueueRepositoryInterface` instance. For instance, assuming 
 the following config:
 
 ```php
