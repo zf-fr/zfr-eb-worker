@@ -5,18 +5,18 @@ namespace ZfrEbWorker\Container;
 use Aws\Sdk as AwsSdk;
 use Interop\Container\ContainerInterface;
 use ZfrEbWorker\Exception\RuntimeException;
-use ZfrEbWorker\MessageQueue\MessageQueueRepository;
+use ZfrEbWorker\MessageQueue\InMemoryMessageQueueRepository;
 
 /**
  * @author Michaël Gallego
  */
-class MessageQueueRepositoryFactory
+class InMemoryMessageQueueRepositoryFactory
 {
     /**
      * @param  ContainerInterface $container
-     * @return MessageQueueRepository
+     * @return InMemoryMessageQueueRepository
      */
-    public function __invoke(ContainerInterface $container): MessageQueueRepository
+    public function __invoke(ContainerInterface $container): InMemoryMessageQueueRepository
     {
         $config = $container->get('config');
 
@@ -28,6 +28,6 @@ class MessageQueueRepositoryFactory
         $awsSdk    = $container->get(AwsSdk::class);
         $sqsClient = $awsSdk->createSqs();
 
-        return new MessageQueueRepository($config['zfr_eb_worker']['queues'], $sqsClient);
+        return new InMemoryMessageQueueRepository($config['zfr_eb_worker']['queues'], $sqsClient);
     }
 }

@@ -5,11 +5,11 @@ namespace ZfrEbWorker\MessageQueue;
 use Aws\Sqs\SqsClient;
 
 /**
- * Repository that allow to easily create queue based on configuration
+ * Repository that allow to easily create queue based on an in-memory configuration
  *
  * @author Michaël Gallego
  */
-class MessageQueueRepository
+class InMemoryMessageQueueRepository implements MessageQueueRepositoryInterface
 {
     /**
      * @var array
@@ -42,7 +42,7 @@ class MessageQueueRepository
      * @param  string $name
      * @return MessageQueueInterface
      */
-    public function getQueueByName(string $name): MessageQueueInterface
+    public function getMessageQueue($name): MessageQueueInterface
     {
         if (isset($this->queues[$name])) {
             return $this->queues[$name];

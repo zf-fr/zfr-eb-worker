@@ -2,14 +2,13 @@
 
 namespace ZfrEbWorker\Cli;
 
-use Aws\Sqs\SqsClient;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use ZfrEbWorker\Message\Message;
-use ZfrEbWorker\MessageQueue\MessageQueueRepository;
+use ZfrEbWorker\MessageQueue\MessageQueueRepositoryInterface;
 
 /**
  * Define a Symfony CLI command
@@ -25,16 +24,16 @@ use ZfrEbWorker\MessageQueue\MessageQueueRepository;
 class PublisherCommand extends Command
 {
     /**
-     * @var MessageQueueRepository
+     * @var MessageQueueRepositoryInterface
      */
     private $queueRepository;
 
     /**
-     * @param MessageQueueRepository $queuePublisher
+     * @param MessageQueueRepositoryInterface $queueRepository
      */
-    public function __construct(MessageQueueRepository $queuePublisher)
+    public function __construct(MessageQueueRepositoryInterface $queueRepository)
     {
-        $this->queueRepository = $queuePublisher;
+        $this->queueRepository = $queueRepository;
 
         parent::__construct();
     }
@@ -85,7 +84,7 @@ class PublisherCommand extends Command
         $payload = [];
         parse_str($input->getOption('payload'), $payload);
 
-        $queue = $this->queueRepository->getQueueByName($queueName);
+        $queue = $this->queueRepository->getMessageQueue($queueName);
 
         $queue->push(new Message($name, $payload));
         $queue->flush();

@@ -4,7 +4,8 @@ namespace ZfrEbWorker\Container;
 
 use Interop\Container\ContainerInterface;
 use ZfrEbWorker\Cli\PublisherCommand;
-use ZfrEbWorker\MessageQueue\MessageQueueRepository;
+use ZfrEbWorker\MessageQueue\InMemoryMessageQueueRepository;
+use ZfrEbWorker\MessageQueue\MessageQueueRepositoryInterface;
 
 /**
  * @author Michaël Gallego
@@ -17,8 +18,8 @@ class PublisherCommandFactory
      */
     public function __invoke(ContainerInterface $container): PublisherCommand
     {
-        /** @var MessageQueueRepository $queueRepository */
-        $queueRepository = $container->get(MessageQueueRepository::class);
+        /** @var InMemoryMessageQueueRepository $queueRepository */
+        $queueRepository = $container->get(MessageQueueRepositoryInterface::class);
 
         return new PublisherCommand($queueRepository);
     }

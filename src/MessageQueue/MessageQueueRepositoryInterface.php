@@ -16,22 +16,20 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrEbWorkerTest\Container;
+namespace ZfrEbWorker\MessageQueue;
 
-use Interop\Container\ContainerInterface;
-use ZfrEbWorker\Container\PublisherCommandFactory;
-use ZfrEbWorker\MessageQueue\MessageQueueRepositoryInterface;
-
-class PublisherCommandFactoryTest extends \PHPUnit_Framework_TestCase
+/**
+ * Interface for a queue repository
+ *
+ * @author Michaël Gallego
+ */
+interface MessageQueueRepositoryInterface
 {
-    public function testFactory()
-    {
-        $container              = $this->prophesize(ContainerInterface::class);
-        $messageQueueRepository = $this->prophesize(MessageQueueRepositoryInterface::class);
-
-        $container->get(MessageQueueRepositoryInterface::class)->shouldBeCalled()->willReturn($messageQueueRepository->reveal());
-
-        $factory = new PublisherCommandFactory();
-        $factory->__invoke($container->reveal());
-    }
+    /**
+     * Get a message by its queue
+     *
+     * @param  mixed $id
+     * @return MessageQueueInterface
+     */
+    public function getMessageQueue($id): MessageQueueInterface;
 }

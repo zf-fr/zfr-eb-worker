@@ -3,13 +3,13 @@
 namespace ZfrEbWorkerTest\MessageQueue;
 
 use Aws\Sqs\SqsClient;
-use ZfrEbWorker\MessageQueue\MessageQueueRepository;
+use ZfrEbWorker\MessageQueue\InMemoryMessageQueueRepository;
 
 class MessageQueueRepositoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testCanGetQueueByName()
     {
-        $repository = new MessageQueueRepository(['first_queue' => 'https://test.com'], $this->prophesize(SqsClient::class)->reveal());
-        $repository->getQueueByName('first_queue');
+        $repository = new InMemoryMessageQueueRepository(['first_queue' => 'https://test.com'], $this->prophesize(SqsClient::class)->reveal());
+        $repository->getMessageQueue('first_queue');
     }
 }

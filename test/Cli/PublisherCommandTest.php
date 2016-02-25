@@ -24,7 +24,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use ZfrEbWorker\Message\Message;
 use ZfrEbWorker\MessageQueue\MessageQueueInterface;
-use ZfrEbWorker\MessageQueue\MessageQueueRepository;
+use ZfrEbWorker\MessageQueue\InMemoryMessageQueueRepository;
 
 class PublisherCommandTest extends \PHPUnit_Framework_TestCase
 {
@@ -40,7 +40,7 @@ class PublisherCommandTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->queueRepository  = $this->prophesize(MessageQueueRepository::class);
+        $this->queueRepository  = $this->prophesize(InMemoryMessageQueueRepository::class);
         $this->publisherCommand = new PublisherCommand($this->queueRepository->reveal());
     }
 
@@ -74,7 +74,7 @@ class PublisherCommandTest extends \PHPUnit_Framework_TestCase
         $queue->push(Argument::any())->shouldBeCalled();
         $queue->flush()->shouldBeCalled();
 
-        $this->queueRepository->getQueueByName('default')->shouldBeCalled()->willReturn($queue->reveal());
+        $this->queueRepository->getMessageQueue('default')->shouldBeCalled()->willReturn($queue->reveal());
 
         $this->executeCommand($input, $output);
     }

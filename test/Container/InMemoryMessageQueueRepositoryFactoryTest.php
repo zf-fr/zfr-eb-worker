@@ -21,10 +21,10 @@ namespace ZfrEbWorkerTest\Container;
 use Aws\Sdk as AwsSdk;
 use Aws\Sqs\SqsClient;
 use Interop\Container\ContainerInterface;
-use ZfrEbWorker\Container\MessageQueueRepositoryFactory;
+use ZfrEbWorker\Container\InMemoryMessageQueueRepositoryFactory;
 use ZfrEbWorker\Exception\RuntimeException;
 
-class MessageQueueRepositoryFactoryTest extends \PHPUnit_Framework_TestCase
+class InMemoryMessageQueueRepositoryFactoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testThrowExceptionIfNoConfig()
     {
@@ -33,7 +33,7 @@ class MessageQueueRepositoryFactoryTest extends \PHPUnit_Framework_TestCase
         $container = $this->prophesize(ContainerInterface::class);
         $container->get('config')->shouldBeCalled()->willReturn([]);
 
-        $factory = new MessageQueueRepositoryFactory();
+        $factory = new InMemoryMessageQueueRepositoryFactory();
 
         $factory->__invoke($container->reveal());
     }
@@ -54,7 +54,7 @@ class MessageQueueRepositoryFactoryTest extends \PHPUnit_Framework_TestCase
 
         $container->get(AwsSdk::class)->shouldBeCalled()->willReturn($awsSdk->reveal());
 
-        $factory = new MessageQueueRepositoryFactory();
+        $factory = new InMemoryMessageQueueRepositoryFactory();
         $factory->__invoke($container->reveal());
     }
 }
