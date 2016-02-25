@@ -21,6 +21,7 @@ namespace ZfrEbWorkerTest\MessageQueue;
 use Aws\Sqs\SqsClient;
 use Prophecy\Argument;
 use ZfrEbWorker\Exception\UnknownQueueException;
+use ZfrEbWorker\Message\DelayedMessage;
 use ZfrEbWorker\Message\Message;
 use ZfrEbWorker\MessageQueue\MessageQueue;
 use ZfrEbWorker\Publisher\QueuePublisher;
@@ -55,7 +56,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
             'Entries'  => [
                 [
                     'Id'           => 0,
-                    'DelaySeconds' => 30,
+                    'DelaySeconds' => 0,
                     'MessageBody'  => json_encode([
                         'name'    => 'message-name',
                         'payload' => [
@@ -73,8 +74,33 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
         }
 
         $queue = new MessageQueue('default_queue', 'https://queue-url.aws.com', $this->sqsClient->reveal());
-        $queue->push(new Message('message-name', ['id' => 123]), ['delay_seconds' => 30]);
+        $queue->push(new Message('message-name', ['id' => 123]));
         $queue->flush($async);
+    }
+
+    public function testCanPushDelayedMessage()
+    {
+        $expectedPayload = [
+            'QueueUrl' => 'https://queue-url.aws.com',
+            'Entries'  => [
+                [
+                    'Id'           => 0,
+                    'DelaySeconds' => 30,
+                    'MessageBody'  => json_encode([
+                        'name'    => 'message-name',
+                        'payload' => [
+                            'id' => 123
+                        ]
+                    ]),
+                ]
+            ]
+        ];
+
+        $this->sqsClient->sendMessageBatch($expectedPayload)->shouldBeCalled();
+
+        $queue = new MessageQueue('default_queue', 'https://queue-url.aws.com', $this->sqsClient->reveal());
+        $queue->push(new DelayedMessage('message-name', ['id' => 123], 30));
+        $queue->flush();
     }
 
     public function testCanPushMoreThanTenMessages()

@@ -19,6 +19,7 @@
 namespace ZfrEbWorker\MessageQueue;
 
 use Aws\Sqs\SqsClient;
+use ZfrEbWorker\Message\DelayedMessage;
 use ZfrEbWorker\Message\MessageInterface;
 
 /**
@@ -61,10 +62,12 @@ class MessageQueue implements MessageQueueInterface
     /**
      * {@inheritDoc}
      */
-    public function push(MessageInterface $message, array $options = [])
+    public function push(MessageInterface $message)
     {
         $this->messages[] = [
-            'options' => $options,
+            'options' => [
+                'delay_seconds' => ($message instanceof DelayedMessage) ? $message->getDelay() : 0
+            ],
             'body'    => [
                 'name'    => $message->getName(),
                 'payload' => $message->getPayload()

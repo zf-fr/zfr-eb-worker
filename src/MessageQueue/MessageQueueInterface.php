@@ -35,14 +35,10 @@ interface MessageQueueInterface
     /**
      * Push a message into the queue
      *
-     * Supported options for now are:
-     *      - delay_seconds: number of seconds the message is delayed before being processed
-     *
      * @param  MessageInterface $message
-     * @param  array            $options
      * @return void
      */
-    public function push(MessageInterface $message, array $options = []);
+    public function push(MessageInterface $message);
 
     /**
      * Flush the queue
