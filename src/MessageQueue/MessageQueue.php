@@ -35,11 +35,6 @@ class MessageQueue implements MessageQueueInterface
     /**
      * @var string
      */
-    private $name;
-
-    /**
-     * @var string
-     */
     private $url;
 
     /**
@@ -48,13 +43,11 @@ class MessageQueue implements MessageQueueInterface
     private $sqsClient;
 
     /**
-     * @param string    $name
      * @param string    $url
      * @param SqsClient $sqsClient
      */
-    public function __construct(string $name, string $url, SqsClient $sqsClient)
+    public function __construct(string $url, SqsClient $sqsClient)
     {
-        $this->name      = $name;
         $this->url       = $url;
         $this->sqsClient = $sqsClient;
     }

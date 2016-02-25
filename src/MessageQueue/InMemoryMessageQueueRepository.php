@@ -49,7 +49,7 @@ class InMemoryMessageQueueRepository implements MessageQueueRepositoryInterface
         }
 
         $queueUrl            = $this->queueConfig[$name] ?? '';
-        $this->queues[$name] = new MessageQueue($name, $queueUrl, $this->sqsClient);
+        $this->queues[$name] = new MessageQueue($queueUrl, $this->sqsClient);
 
         return $this->queues[$name];
     }
