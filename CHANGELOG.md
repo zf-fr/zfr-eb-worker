@@ -1,3 +1,7 @@
+# 4.0.0
+
+* `QueuePublisherInterface` has been removed and replaced by a single `QueueInterface`, tied to a single queue.
+
 # 3.3.0
 
 * Add a new `SilentFailingListener` class that you can use if you don't want to handle a specific message.
