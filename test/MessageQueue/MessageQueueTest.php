@@ -73,7 +73,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
             $this->sqsClient->sendMessageBatch($expectedPayload)->shouldBeCalled();
         }
 
-        $queue = new MessageQueue('default_queue', 'https://queue-url.aws.com', $this->sqsClient->reveal());
+        $queue = new MessageQueue('https://queue-url.aws.com', $this->sqsClient->reveal());
         $queue->push(new Message('message-name', ['id' => 123]));
         $queue->flush($async);
     }
@@ -98,7 +98,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
 
         $this->sqsClient->sendMessageBatch($expectedPayload)->shouldBeCalled();
 
-        $queue = new MessageQueue('default_queue', 'https://queue-url.aws.com', $this->sqsClient->reveal());
+        $queue = new MessageQueue('https://queue-url.aws.com', $this->sqsClient->reveal());
         $queue->push(new DelayedMessage('message-name', ['id' => 123], 30));
         $queue->flush();
     }
@@ -107,7 +107,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
     {
         $this->sqsClient->sendMessageBatch(Argument::any())->shouldBeCalledTimes(2);
 
-        $queue = new MessageQueue('default_queue', 'https://queue-url.aws.com', $this->sqsClient->reveal());
+        $queue = new MessageQueue('https://queue-url.aws.com', $this->sqsClient->reveal());
 
         for ($i = 0 ; $i != 15 ; ++$i) {
             $queue->push(new Message('message-name', ['id' => $i]), ['delay_seconds' => 30]);
@@ -120,7 +120,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
     {
         $this->sqsClient->sendMessageBatch(Argument::any())->shouldBeCalledTimes(1);
 
-        $queue = new MessageQueue('default_queue', 'https://queue-url.aws.com', $this->sqsClient->reveal());
+        $queue = new MessageQueue('https://queue-url.aws.com', $this->sqsClient->reveal());
         $queue->push(new Message('message-name', ['id' => 1]));
 
         $queue->flush();
