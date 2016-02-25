@@ -1,6 +1,6 @@
 <?php
 
-namespace ZfrEbWorker\Queue;
+namespace ZfrEbWorker\MessageQueue;
 
 use Aws\Sqs\SqsClient;
 
@@ -9,7 +9,7 @@ use Aws\Sqs\SqsClient;
  *
  * @author Michaël Gallego
  */
-class QueueRepository
+class MessageQueueRepository
 {
     /**
      * @var array
@@ -22,7 +22,7 @@ class QueueRepository
     private $sqsClient;
 
     /**
-     * @var QueueInterface[]
+     * @var MessageQueueInterface[]
      */
     private $queues;
 
@@ -40,16 +40,16 @@ class QueueRepository
      * Get a queue by its name
      *
      * @param  string $name
-     * @return QueueInterface
+     * @return MessageQueueInterface
      */
-    public function getQueueByName(string $name): QueueInterface
+    public function getQueueByName(string $name): MessageQueueInterface
     {
         if (isset($this->queues[$name])) {
             return $this->queues[$name];
         }
 
         $queueUrl            = $this->queueConfig[$name] ?? '';
-        $this->queues[$name] = new Queue($this->sqsClient, $name, $queueUrl);
+        $this->queues[$name] = new MessageQueue($this->sqsClient, $name, $queueUrl);
 
         return $this->queues[$name];
     }

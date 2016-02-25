@@ -5,7 +5,7 @@ namespace ZfrEbWorker\Container;
 use Aws\Sdk as AwsSdk;
 use Interop\Container\ContainerInterface;
 use ZfrEbWorker\Cli\PublisherCommand;
-use ZfrEbWorker\Publisher\QueuePublisherInterface;
+use ZfrEbWorker\Queue\MessageQueueRepository;
 
 /**
  * @author Michaël Gallego
@@ -18,13 +18,13 @@ class PublisherCommandFactory
      */
     public function __invoke(ContainerInterface $container): PublisherCommand
     {
-        /** @var QueuePublisherInterface $queuePublisher */
-        $queuePublisher = $container->get(QueuePublisherInterface::class);
+        /** @var MessageQueueRepository $queueRepository */
+        $queueRepository = $container->get(MessageQueueRepository::class);
 
         /** @var AwsSdk $awsSdk */
         $awsSdk    = $container->get(AwsSdk::class);
         $sqsClient = $awsSdk->createSqs();
 
-        return new PublisherCommand($queuePublisher, $sqsClient);
+        return new PublisherCommand($queueRepository, $sqsClient);
     }
 }

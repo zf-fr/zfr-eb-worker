@@ -16,7 +16,7 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrEbWorker\Queue;
+namespace ZfrEbWorker\MessageQueue;
 
 use Aws\Sqs\SqsClient;
 use ZfrEbWorker\Exception\RuntimeException;
@@ -25,7 +25,7 @@ use ZfrEbWorker\Message\MessageInterface;
 /**
  * @author Michaël Gallego
  */
-class Queue implements QueueInterface
+class MessageQueue implements MessageQueueInterface
 {
     /**
      * @var array[]

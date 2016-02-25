@@ -16,7 +16,7 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrEbWorker\Queue;
+namespace ZfrEbWorker\MessageQueue;
 
 use ZfrEbWorker\Message\MessageInterface;
 
@@ -30,7 +30,7 @@ use ZfrEbWorker\Message\MessageInterface;
  *
  * @author Michaël Gallego
  */
-interface QueueInterface
+interface MessageQueueInterface
 {
     /**
      * Set a new SQS URL for the queue
