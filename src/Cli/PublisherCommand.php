@@ -2,14 +2,13 @@
 
 namespace ZfrEbWorker\Cli;
 
-use Aws\Sqs\Exception\SqsException;
-use Aws\Sqs\SqsClient;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use ZfrEbWorker\Publisher\QueuePublisherInterface;
+use ZfrEbWorker\Message\Message;
+use ZfrEbWorker\MessageQueue\MessageQueueRepositoryInterface;
 
 /**
  * Define a Symfony CLI command
@@ -25,23 +24,16 @@ use ZfrEbWorker\Publisher\QueuePublisherInterface;
 class PublisherCommand extends Command
 {
     /**
-     * @var QueuePublisherInterface
+     * @var MessageQueueRepositoryInterface
      */
-    private $queuePublisher;
+    private $queueRepository;
 
     /**
-     * @var SqsClient
+     * @param MessageQueueRepositoryInterface $queueRepository
      */
-    private $sqsClient;
-
-    /**
-     * @param QueuePublisherInterface $queuePublisher
-     * @param SqsClient               $sqsClient
-     */
-    public function __construct(QueuePublisherInterface $queuePublisher, SqsClient $sqsClient)
+    public function __construct(MessageQueueRepositoryInterface $queueRepository)
     {
-        $this->queuePublisher = $queuePublisher;
-        $this->sqsClient      = $sqsClient;
+        $this->queueRepository = $queueRepository;
 
         parent::__construct();
     }
@@ -89,24 +81,13 @@ class PublisherCommand extends Command
         $name      = $input->getOption('name');
         $queueName = $input->getOption('queue');
 
-        try {
-            $queueUrl = $this->sqsClient->getQueueUrl(['QueueName' => $queueName])['QueueUrl'];
-        } catch (SqsException $exception) {
-            $output->writeln(sprintf(
-                '<error>Impossible to retrieve URL for queue "%s". Reason: %s</error>',
-                $queueName,
-                $exception->getMessage()
-            ));
-
-            return;
-        }
-
         $payload = [];
         parse_str($input->getOption('payload'), $payload);
 
-        $this->queuePublisher->setQueue($queueName, $queueUrl);
-        $this->queuePublisher->push($queueName, $name, $payload);
-        $this->queuePublisher->flush();
+        $queue = $this->queueRepository->getMessageQueue($queueName);
+
+        $queue->push(new Message($name, $payload));
+        $queue->flush();
 
         $output->writeln(sprintf(
             '<info>Message for "%s" has been added to the queue "%s" with the following payload: %s.</info>',

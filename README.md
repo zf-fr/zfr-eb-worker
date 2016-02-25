@@ -14,7 +14,7 @@ ZfrEbWorker is a simple abstraction around SQS, aims to simplify the creation of
 Installation of ZfrEbWorker is only officially supported using Composer:
 
 ```sh
-php composer.phar require 'zfr/zfr-eb-worker:3.*'
+php composer.phar require 'zfr/zfr-eb-worker:4.*'
 ```
 
 ## How Elastic Beanstalk work?
@@ -98,7 +98,7 @@ First, make sure to configure the ZfrEbWorker library by adding this config:
 ```php
 'zfr_eb_worker' => [
     'queues' => [
-        'first_queue' => 'https://sqs.us-east-1.amazon.com/foo',
+        'first_queue'  => 'https://sqs.us-east-1.amazon.com/foo',
         'second_queue' => 'https://sqs.us-east-1.amazon.com/bar'
     ],
 
@@ -131,31 +131,47 @@ on this URL.
 
 ### Pushing message
 
-You can push messages by injecting the `QueuePublisher` service into your classes. You need to first add one or more messages,
-then flush the queue. When flushing, the library will make sure to do as few call as possible to SQS (using optimized SQS batch API),
-and to multiple queues:
+You can push messages by injecting a `MessageQueueInterface` object into your classes.
+
+You can create a queue easily, pre-configured, by using a `MessageQueueRepositoryInterface` instance. For instance, assuming 
+the following config:
 
 ```php
-$queuePublisher->push('default_queue', 'image.saved', ['image_id' => 123]);
-$queuePublisher->push('default_queue', 'imave.saved', ['image_id' => 456]);
+'zfr_eb_worker' => [
+    'queues' => [
+        'first_queue'  => 'https://sqs.us-east-1.amazon.com/foo'
+    ]
+]
+```
+
+You can use the repository to create the queue, configured with the URL:
+
+```php
+$queue = $queueRepository->getMessageQueue('first_queue');
+```
+
+Once you have a configured queue, you can add one or more messages, then flush the queue. When flushing, the
+library will make sure to do as few call as possible to SQS (using optimized SQS batch API), and to multiple queues:
+
+```php
+$queue->push(new Message('image.saved', ['image_id' => 123]));
+$queue->push(new Message('imave.saved', ['image_id' => 456]));
 
 // ...
 
-$queuePublisher->flush();
+$queue->flush();
 ```
 
-The `push` method also accepts a fourth optional array parameters, where you can add specific info on a per-message basis. As of now,
-those options are accepted:
+The `push` method accepts as a first argument a `MessageInterface` object, which is a thin wrapper for both a message
+name and payload. ZfrEbWorker provides a default `Message` class.
 
-* `delay_delay`: specify how many seconds before the message can be pulled from the first time by SQS. The maximum value is 900 (15 minutes).
+You can also push delayed message (up to 600 seconds) by using the specialized DelayedMessage class:
 
 Example usage:
 
 ```php
-$queuePublisher->push('default_queue', 'image.saved', ['image_id' => 123], ['delay_seconds' => 60]);
+$queue->push(new DelayedMessage('image.saved', ['image_id' => 123], 60));
 ```
-
-Your worker then could optimize the image as a response of this event.
 
 ### Retrieving message info
 

@@ -16,8 +16,20 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrEbWorker\Exception;
+namespace ZfrEbWorker\MessageQueue;
 
-class UnknownQueueException extends RuntimeException implements ExceptionInterface
+/**
+ * Interface for a queue repository
+ *
+ * @author Michaël Gallego
+ */
+interface MessageQueueRepositoryInterface
 {
+    /**
+     * Get a message by its queue
+     *
+     * @param  mixed $id
+     * @return MessageQueueInterface
+     */
+    public function getMessageQueue($id): MessageQueueInterface;
 }

@@ -3,24 +3,24 @@
 use ZfrEbWorker\Cli\PublisherCommand;
 use ZfrEbWorker\Cli\WorkerCommand;
 use ZfrEbWorker\Container\PublisherCommandFactory;
-use ZfrEbWorker\Container\QueuePublisherFactory;
+use ZfrEbWorker\Container\InMemoryMessageQueueRepositoryFactory;
 use ZfrEbWorker\Container\WorkerCommandFactory;
 use ZfrEbWorker\Container\WorkerMiddlewareFactory;
-use ZfrEbWorker\Publisher\QueuePublisher;
+use ZfrEbWorker\MessageQueue\InMemoryMessageQueueRepository;
+use ZfrEbWorker\MessageQueue\MessageQueueRepositoryInterface;
 use ZfrEbWorker\Middleware\WorkerMiddleware;
-use ZfrEbWorker\Publisher\QueuePublisherInterface;
 
 return [
     'dependencies' => [
         'aliases' => [
-            QueuePublisherInterface::class => QueuePublisher::class
+            MessageQueueRepositoryInterface::class => InMemoryMessageQueueRepository::class
         ],
 
         'factories' => [
-            PublisherCommand::class => PublisherCommandFactory::class,
-            QueuePublisher::class   => QueuePublisherFactory::class,
-            WorkerCommand::class    => WorkerCommandFactory::class,
-            WorkerMiddleware::class => WorkerMiddlewareFactory::class,
+            PublisherCommand::class               => PublisherCommandFactory::class,
+            InMemoryMessageQueueRepository::class => InMemoryMessageQueueRepositoryFactory::class,
+            WorkerCommand::class                  => WorkerCommandFactory::class,
+            WorkerMiddleware::class               => WorkerMiddlewareFactory::class,
         ]
     ],
 ];

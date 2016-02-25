@@ -21,19 +21,19 @@ namespace ZfrEbWorkerTest\Container;
 use Aws\Sdk as AwsSdk;
 use Aws\Sqs\SqsClient;
 use Interop\Container\ContainerInterface;
-use ZfrEbWorker\Container\QueuePublisherFactory;
+use ZfrEbWorker\Container\InMemoryMessageQueueRepositoryFactory;
 use ZfrEbWorker\Exception\RuntimeException;
 
-class QueuePublisherFactoryTest extends \PHPUnit_Framework_TestCase
+class InMemoryMessageQueueRepositoryFactoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testThrowExceptionIfNoConfig()
     {
-        $this->setExpectedException(RuntimeException::class);
+        $this->expectException(RuntimeException::class);
 
         $container = $this->prophesize(ContainerInterface::class);
         $container->get('config')->shouldBeCalled()->willReturn([]);
 
-        $factory = new QueuePublisherFactory();
+        $factory = new InMemoryMessageQueueRepositoryFactory();
 
         $factory->__invoke($container->reveal());
     }
@@ -54,7 +54,7 @@ class QueuePublisherFactoryTest extends \PHPUnit_Framework_TestCase
 
         $container->get(AwsSdk::class)->shouldBeCalled()->willReturn($awsSdk->reveal());
 
-        $factory = new QueuePublisherFactory();
+        $factory = new InMemoryMessageQueueRepositoryFactory();
         $factory->__invoke($container->reveal());
     }
 }

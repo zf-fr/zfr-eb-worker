@@ -16,42 +16,29 @@
  * and is licensed under the MIT license.
  */
 
-namespace ZfrEbWorker\Publisher;
+namespace ZfrEbWorker\MessageQueue;
+
+use ZfrEbWorker\Message\MessageInterface;
 
 /**
- * Interface for a queue publisher
+ * Interface for a queue
  *
- * A queue publisher is a thin layer around AWS SDK for SQS. In order to push a new message,
+ * The queue is a thin layer around AWS SDK for SQS. In order to push a new message,
  * you must provide a middleware name, arbitrary data and some options. Once everything is done,
  * you can flush. This is an optimized operation and the flush will make sure to create the minimum
  * number of messages to SQS.
  *
  * @author Michaël Gallego
  */
-interface QueuePublisherInterface
+interface MessageQueueInterface
 {
-    /**
-     * Set a new queue using an URL
-     *
-     * @param  string $queue
-     * @param  string $queueUrl
-     * @return void
-     */
-    public function setQueue(string $queue, string $queueUrl);
-
     /**
      * Push a message into the queue
      *
-     * Supported options for now are:
-     *      - delay_seconds: number of seconds the message is delayed before being processed
-     *
-     * @param  string $queue
-     * @param  string $name
-     * @param  array  $payload
-     * @param  array  $options
+     * @param  MessageInterface $message
      * @return void
      */
-    public function push(string $queue, string $name, array $payload = [], array $options = []);
+    public function push(MessageInterface $message);
 
     /**
      * Flush the queue
