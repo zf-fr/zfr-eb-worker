@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use ZfrEbWorker\Message\Message;
-use ZfrEbWorker\Queue\MessageQueueRepository;
+use ZfrEbWorker\MessageQueue\MessageQueueRepository;
 
 /**
  * Define a Symfony CLI command
@@ -30,18 +30,11 @@ class PublisherCommand extends Command
     private $queueRepository;
 
     /**
-     * @var SqsClient
-     */
-    private $sqsClient;
-
-    /**
      * @param MessageQueueRepository $queuePublisher
-     * @param SqsClient       $sqsClient
      */
-    public function __construct(MessageQueueRepository $queuePublisher, SqsClient $sqsClient)
+    public function __construct(MessageQueueRepository $queuePublisher)
     {
         $this->queueRepository = $queuePublisher;
-        $this->sqsClient       = $sqsClient;
 
         parent::__construct();
     }

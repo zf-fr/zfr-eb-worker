@@ -49,7 +49,7 @@ class MessageQueueRepository
         }
 
         $queueUrl            = $this->queueConfig[$name] ?? '';
-        $this->queues[$name] = new MessageQueue($this->sqsClient, $name, $queueUrl);
+        $this->queues[$name] = new MessageQueue($name, $queueUrl, $this->sqsClient);
 
         return $this->queues[$name];
     }

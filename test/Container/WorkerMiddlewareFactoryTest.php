@@ -26,7 +26,7 @@ class WorkerMiddlewareFactoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testThrowExceptionIfNoConfig()
     {
-        $this->setExpectedException(RuntimeException::class);
+        $this->expectException(RuntimeException::class);
 
         $container = $this->prophesize(ContainerInterface::class);
         $container->get('config')->shouldBeCalled()->willReturn([]);

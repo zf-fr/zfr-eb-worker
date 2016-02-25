@@ -18,25 +18,20 @@
 
 namespace ZfrEbWorker\Cli;
 
-use Aws\Sqs\Exception\SqsException;
-use Aws\Sqs\SqsClient;
 use Prophecy\Argument;
 use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use ZfrEbWorker\Publisher\QueuePublisherInterface;
+use ZfrEbWorker\Message\Message;
+use ZfrEbWorker\MessageQueue\MessageQueueInterface;
+use ZfrEbWorker\MessageQueue\MessageQueueRepository;
 
 class PublisherCommandTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \Prophecy\Prophecy\ObjectProphecy
      */
-    private $queuePublisher;
-
-    /**
-     * @var \Prophecy\Prophecy\ObjectProphecy
-     */
-    private $sqsClient;
+    private $queueRepository;
 
     /**
      * @var PublisherCommand
@@ -45,9 +40,8 @@ class PublisherCommandTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->queuePublisher   = $this->prophesize(QueuePublisherInterface::class);
-        $this->sqsClient        = $this->prophesize(SqsClient::class);
-        $this->publisherCommand = new PublisherCommand($this->queuePublisher->reveal(), $this->sqsClient->reveal());
+        $this->queueRepository  = $this->prophesize(MessageQueueRepository::class);
+        $this->publisherCommand = new PublisherCommand($this->queueRepository->reveal());
     }
 
     public function testCanConfigureCommand()
@@ -59,21 +53,6 @@ class PublisherCommandTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($inputDefinition->hasOption('queue'));
     }
 
-    public function testThrowExceptionIfQueueDoesNotExist()
-    {
-        $input  = $this->prophesize(InputInterface::class);
-        $output = $this->prophesize(OutputInterface::class);
-
-        $input->getOption('name')->shouldBeCalled()->willReturn('user.created');
-        $input->getOption('queue')->shouldBeCalled()->willReturn('default');
-
-        $this->sqsClient->getQueueUrl(['QueueName' => 'default'])->shouldBeCalled()->willThrow(SqsException::class);
-
-        $output->writeln(Argument::containingString('<error>Impossible to retrieve URL for queue "default"'))->shouldBeCalled();
-
-        $this->executeCommand($input, $output);
-    }
-
     public function testCanPushMessage()
     {
         $input  = $this->prophesize(InputInterface::class);
@@ -83,19 +62,19 @@ class PublisherCommandTest extends \PHPUnit_Framework_TestCase
         $input->getOption('queue')->shouldBeCalled()->willReturn('default');
         $input->getOption('payload')->shouldBeCalled()->willReturn('key=value&user[first_name]=John&user[last_name]=Doe');
 
-        $this->sqsClient->getQueueUrl(['QueueName' => 'default'])->shouldBeCalled()->willReturn([
-            'QueueUrl' => 'https://sqs.amazonaws.com'
-        ]);
-
-        $this->queuePublisher->setQueue('default', 'https://sqs.amazonaws.com')->shouldBeCalled();
-        $this->queuePublisher->push('default', 'user.created', [
+        $payload = [
             'key'  => 'value',
             'user' => [
                 'first_name' => 'John',
                 'last_name'  => 'Doe'
             ]
-        ])->shouldBeCalled();
-        $this->queuePublisher->flush()->shouldBeCalled();
+        ];
+
+        $queue = $this->prophesize(MessageQueueInterface::class);
+        $queue->push(Argument::any())->shouldBeCalled();
+        $queue->flush()->shouldBeCalled();
+
+        $this->queueRepository->getQueueByName('default')->shouldBeCalled()->willReturn($queue->reveal());
 
         $this->executeCommand($input, $output);
     }

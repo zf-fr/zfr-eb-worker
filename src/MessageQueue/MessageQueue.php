@@ -19,7 +19,6 @@
 namespace ZfrEbWorker\MessageQueue;
 
 use Aws\Sqs\SqsClient;
-use ZfrEbWorker\Exception\RuntimeException;
 use ZfrEbWorker\Message\MessageInterface;
 
 /**
@@ -33,11 +32,6 @@ class MessageQueue implements MessageQueueInterface
     private $messages = [];
 
     /**
-     * @var SqsClient
-     */
-    private $sqsClient;
-
-    /**
      * @var string
      */
     private $name;
@@ -48,23 +42,20 @@ class MessageQueue implements MessageQueueInterface
     private $url;
 
     /**
-     * @param SqsClient $sqsClient
-     * @param string    $name
-     * @param string    $url
+     * @var SqsClient
      */
-    public function __construct(SqsClient $sqsClient, string $name, string $url = '')
-    {
-        $this->sqsClient = $sqsClient;
-        $this->name      = $name;
-        $this->url       = $url;
-    }
+    private $sqsClient;
 
     /**
-     * {@inheritDoc}
+     * @param string    $name
+     * @param string    $url
+     * @param SqsClient $sqsClient
      */
-    public function setQueueUrl(string $url)
+    public function __construct(string $name, string $url, SqsClient $sqsClient)
     {
-        $this->url = $url;
+        $this->name      = $name;
+        $this->url       = $url;
+        $this->sqsClient = $sqsClient;
     }
 
     /**
@@ -86,17 +77,7 @@ class MessageQueue implements MessageQueueInterface
      */
     public function flush(bool $async = false)
     {
-        if (null === $this->url) {
-            throw new RuntimeException(sprintf(
-                'Queue "%s" is not mapped to an actual SQS queue URL. Did you make sure you have specified the
-                 queue into the "zfr_eb_worker" config?',
-                $this->name
-            ));
-        }
-
         $this->doFlush($async);
-
-        // We reset the messages so that we make sure we don't duplicate message by calling flush multiple times
         $this->messages = [];
     }
 

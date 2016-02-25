@@ -33,14 +33,6 @@ use ZfrEbWorker\Message\MessageInterface;
 interface MessageQueueInterface
 {
     /**
-     * Set a new SQS URL for the queue
-     *
-     * @param  string $url
-     * @return void
-     */
-    public function setQueueUrl(string $url);
-
-    /**
      * Push a message into the queue
      *
      * Supported options for now are:

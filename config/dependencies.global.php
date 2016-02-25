@@ -3,7 +3,7 @@
 use ZfrEbWorker\Cli\PublisherCommand;
 use ZfrEbWorker\Cli\WorkerCommand;
 use ZfrEbWorker\Container\PublisherCommandFactory;
-use ZfrEbWorker\Container\QueueRepositoryFactory;
+use ZfrEbWorker\Container\MessageQueueRepositoryFactory;
 use ZfrEbWorker\Container\WorkerCommandFactory;
 use ZfrEbWorker\Container\WorkerMiddlewareFactory;
 use ZfrEbWorker\MessageQueue\MessageQueueRepository;
@@ -13,7 +13,7 @@ return [
     'dependencies' => [
         'factories' => [
             PublisherCommand::class       => PublisherCommandFactory::class,
-            MessageQueueRepository::class => QueueRepositoryFactory::class,
+            MessageQueueRepository::class => MessageQueueRepositoryFactory::class,
             WorkerCommand::class          => WorkerCommandFactory::class,
             WorkerMiddleware::class       => WorkerMiddlewareFactory::class,
         ]

@@ -18,25 +18,18 @@
 
 namespace ZfrEbWorkerTest\Container;
 
-use Aws\Sdk as AwsSdk;
-use Aws\Sqs\SqsClient;
 use Interop\Container\ContainerInterface;
 use ZfrEbWorker\Container\PublisherCommandFactory;
-use ZfrEbWorker\Publisher\QueuePublisherInterface;
+use ZfrEbWorker\MessageQueue\MessageQueueRepository;
 
 class PublisherCommandFactoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testFactory()
     {
-        $container               = $this->prophesize(ContainerInterface::class);
-        $sqsClient               = $this->prophesize(SqsClient::class);
-        $queuePublisherInterface = $this->prophesize(QueuePublisherInterface::class);
+        $container              = $this->prophesize(ContainerInterface::class);
+        $messageQueueRepository = $this->prophesize(MessageQueueRepository::class);
 
-        $awsSdk = $this->prophesize(AwsSdk::class);
-        $awsSdk->createSqs()->shouldBeCalled()->willReturn($sqsClient->reveal());
-
-        $container->get(QueuePublisherInterface::class)->shouldBeCalled()->willReturn($queuePublisherInterface->reveal());
-        $container->get(AwsSdk::class)->shouldBeCalled()->willReturn($awsSdk->reveal());
+        $container->get(MessageQueueRepository::class)->shouldBeCalled()->willReturn($messageQueueRepository->reveal());
 
         $factory = new PublisherCommandFactory();
         $factory->__invoke($container->reveal());

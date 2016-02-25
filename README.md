@@ -150,8 +150,6 @@ You can use the repository to create the queue, configured with the URL:
 $queue = $queueRepository->getQueueByName('first_queue');
 ```
 
-You can also modify the URL at runtime by using the `setQueueUrl` of the queue object.
-
 Once you have a configured queue, you can add one or more messages, then flush the queue. When flushing, the
 library will make sure to do as few call as possible to SQS (using optimized SQS batch API), and to multiple queues:
 

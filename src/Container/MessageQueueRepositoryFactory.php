@@ -5,12 +5,12 @@ namespace ZfrEbWorker\Container;
 use Aws\Sdk as AwsSdk;
 use Interop\Container\ContainerInterface;
 use ZfrEbWorker\Exception\RuntimeException;
-use ZfrEbWorker\Queue\MessageQueueRepository;
+use ZfrEbWorker\MessageQueue\MessageQueueRepository;
 
 /**
  * @author Michaël Gallego
  */
-class QueueRepositoryFactory
+class MessageQueueRepositoryFactory
 {
     /**
      * @param  ContainerInterface $container
