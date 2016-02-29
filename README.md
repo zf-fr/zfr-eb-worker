@@ -247,8 +247,6 @@ alongside your `index.php` file:
 
 ```php
 use Symfony\Component\Console\Application;
-use Zend\ServiceManager\ServiceManager;
-use ZfrEbWorker\ModuleConfig;
 
 chdir(dirname(__DIR__));
 require 'vendor/autoload.php';
