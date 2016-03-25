@@ -1,3 +1,7 @@
+# 4.0.1
+
+* Message body is now encoded in RFC4627-compliant JSON by using some encoding flags.
+
 # 4.0.0
 
 * `QueuePublisherInterface` has been removed and replaced by a single `MessageQueueInterface`, tied to a single queue.

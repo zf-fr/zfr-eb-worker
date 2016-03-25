@@ -57,12 +57,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
                 [
                     'Id'           => 0,
                     'DelaySeconds' => 0,
-                    'MessageBody'  => json_encode([
-                        'name'    => 'message-name',
-                        'payload' => [
-                            'id' => 123
-                        ]
-                    ]),
+                    'MessageBody'  => '{"name":"message-name","payload":{"id":123,"url":"https://www.test.com"}}'
                 ]
             ]
         ];
@@ -74,7 +69,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
         }
 
         $queue = new MessageQueue('https://queue-url.aws.com', $this->sqsClient->reveal());
-        $queue->push(new Message('message-name', ['id' => 123]));
+        $queue->push(new Message('message-name', ['id' => 123, 'url' => 'https://www.test.com']));
         $queue->flush($async);
     }
 
@@ -86,12 +81,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
                 [
                     'Id'           => 0,
                     'DelaySeconds' => 30,
-                    'MessageBody'  => json_encode([
-                        'name'    => 'message-name',
-                        'payload' => [
-                            'id' => 123
-                        ]
-                    ]),
+                    'MessageBody'  => '{"name":"message-name","payload":{"id":123}}'
                 ]
             ]
         ];
