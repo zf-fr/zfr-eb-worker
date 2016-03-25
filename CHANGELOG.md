@@ -1,3 +1,7 @@
+# 4.0.1
+
+* Slashes are not escaped anymore when JSON body is created.
+
 # 4.0.0
 
 * `QueuePublisherInterface` has been removed and replaced by a single `MessageQueueInterface`, tied to a single queue.

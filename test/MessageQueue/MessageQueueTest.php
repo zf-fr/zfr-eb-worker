@@ -60,9 +60,10 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
                     'MessageBody'  => json_encode([
                         'name'    => 'message-name',
                         'payload' => [
-                            'id' => 123
+                            'id'  => 123,
+                            'url' => 'https://www.test.com' // Make sure slashes are not escaped
                         ]
-                    ]),
+                    ], JSON_UNESCAPED_SLASHES),
                 ]
             ]
         ];
@@ -74,7 +75,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
         }
 
         $queue = new MessageQueue('https://queue-url.aws.com', $this->sqsClient->reveal());
-        $queue->push(new Message('message-name', ['id' => 123]));
+        $queue->push(new Message('message-name', ['id' => 123, 'url' => 'https://www.test.com']));
         $queue->flush($async);
     }
 

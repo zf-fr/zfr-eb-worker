@@ -98,7 +98,7 @@ class MessageQueue implements MessageQueueInterface
             foreach ($messagesToPush as $key => $message) {
                 $messageParameters = [
                     'Id'           => $key, // Identifier of the message in the batch
-                    'MessageBody'  => json_encode($message['body']),
+                    'MessageBody'  => json_encode($message['body'], JSON_UNESCAPED_SLASHES),
                     'DelaySeconds' => $message['options']['delay_seconds'] ?? null
                 ];
 
