@@ -57,13 +57,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
                 [
                     'Id'           => 0,
                     'DelaySeconds' => 0,
-                    'MessageBody'  => json_encode([
-                        'name'    => 'message-name',
-                        'payload' => [
-                            'id'  => 123,
-                            'url' => 'https://www.test.com' // Make sure slashes are not escaped
-                        ]
-                    ], JSON_UNESCAPED_SLASHES),
+                    'MessageBody'  => '{"name":"message-name","payload":{"id":123,"url":"https://www.test.com"}}'
                 ]
             ]
         ];
@@ -87,12 +81,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
                 [
                     'Id'           => 0,
                     'DelaySeconds' => 30,
-                    'MessageBody'  => json_encode([
-                        'name'    => 'message-name',
-                        'payload' => [
-                            'id' => 123
-                        ]
-                    ], JSON_UNESCAPED_SLASHES),
+                    'MessageBody'  => '{"name":"message-name","payload":{"id":123}}'
                 ]
             ]
         ];

@@ -28,6 +28,17 @@ use ZfrEbWorker\Message\MessageInterface;
 class MessageQueue implements MessageQueueInterface
 {
     /**
+     * Default flags for json_encode; value of:
+     *
+     * <code>
+     * JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES
+     * </code>
+     *
+     * @const int
+     */
+    const DEFAULT_JSON_FLAGS = 79;
+
+    /**
      * @var array[]
      */
     private $messages = [];
@@ -98,7 +109,7 @@ class MessageQueue implements MessageQueueInterface
             foreach ($messagesToPush as $key => $message) {
                 $messageParameters = [
                     'Id'           => $key, // Identifier of the message in the batch
-                    'MessageBody'  => json_encode($message['body'], JSON_UNESCAPED_SLASHES),
+                    'MessageBody'  => json_encode($message['body'], self::DEFAULT_JSON_FLAGS),
                     'DelaySeconds' => $message['options']['delay_seconds'] ?? null
                 ];
 

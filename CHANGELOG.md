@@ -1,6 +1,6 @@
 # 4.0.1
 
-* Slashes are not escaped anymore when JSON body is created.
+* Message body is now encoded in RFC4627-compliant JSON by using some encoding flags.
 
 # 4.0.0
 
