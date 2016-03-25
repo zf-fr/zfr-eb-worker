@@ -92,7 +92,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
                         'payload' => [
                             'id' => 123
                         ]
-                    ]),
+                    ], JSON_UNESCAPED_SLASHES),
                 ]
             ]
         ];
