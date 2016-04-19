@@ -1,3 +1,7 @@
+# 4.0.2
+
+* Add missing factory for `SilentFailingListener`.
+
 # 4.0.1
 
 * Message body is now encoded in RFC4627-compliant JSON by using some encoding flags.
