@@ -1,3 +1,7 @@
+# 5.0.0
+
+* Now uses [`Zend\ComponentInstaller`](https://zendframework.github.io/zend-component-installer/) for config
+
 # 4.0.2
 
 * Add missing factory for `SilentFailingListener`.

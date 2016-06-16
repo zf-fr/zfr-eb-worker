@@ -17,6 +17,11 @@
             "homepage": "http://www.michaelgallego.fr"
         }
     ],
+    "extra": {
+        "zf": {
+            "config-provider": "ZfrEbWorker\\ConfigProvider"
+        }
+    },
     "require": {
         "php": "^7.0",
         "aws/aws-sdk-php": "^3.0",

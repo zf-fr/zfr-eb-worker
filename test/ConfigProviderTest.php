@@ -18,13 +18,13 @@
 
 namespace ZfrEbWorkerTest;
 
-use ZfrEbWorker\AppConfig;
+use ZfrEbWorker\ConfigProvider;
 
-class AppConfigTest extends \PHPUnit_Framework_TestCase
+class ConfigProviderTest extends \PHPUnit_Framework_TestCase
 {
     public function testConfig()
     {
-        $config = (new AppConfig())->__invoke();
+        $config = (new ConfigProvider())->__invoke();
 
         $this->assertArrayHasKey('dependencies', $config);
         $this->assertArrayHasKey('routes', $config);

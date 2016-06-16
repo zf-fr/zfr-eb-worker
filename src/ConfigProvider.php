@@ -25,9 +25,8 @@ namespace ZfrEbWorker;
  * config as part of your application config
  *
  * @author Michaël Gallego
- * @deprecated Use ZfrEbWorker\ModuleConfig instead
  */
-class AppConfig
+class ConfigProvider
 {
     /**
      * @return array
