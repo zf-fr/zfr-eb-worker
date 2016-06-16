@@ -14,7 +14,7 @@ ZfrEbWorker is a simple abstraction around SQS, aims to simplify the creation of
 Installation of ZfrEbWorker is only officially supported using Composer:
 
 ```sh
-php composer.phar require 'zfr/zfr-eb-worker:4.*'
+php composer.phar require 'zfr/zfr-eb-worker:5.*'
 ```
 
 ## How Elastic Beanstalk work?
