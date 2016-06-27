@@ -40,6 +40,6 @@ class LocalhostCheckerMiddleware
             ));
         }
 
-        return $out($request, $response, $out);
+        return $out($request, $response);
     }
 }
