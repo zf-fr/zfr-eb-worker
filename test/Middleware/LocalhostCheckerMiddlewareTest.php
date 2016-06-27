@@ -4,11 +4,12 @@ namespace ZfrEbWorkerTest\Middleware;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response;
+use ZfrEbWorker\Exception\RuntimeException;
 use ZfrEbWorker\Middleware\LocalhostCheckerMiddleware;
 
 class LocalhostCheckerMiddlewareTest extends \PHPUnit_Framework_TestCase
 {
-    public function testReturns403IfNotFromLocalhost()
+    public function testThrowsExceptionIfNotFromLocalhost()
     {
         $request  = $this->prophesize(ServerRequestInterface::class);
         $response = new Response();
@@ -17,11 +18,14 @@ class LocalhostCheckerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
         $middleware = new LocalhostCheckerMiddleware();
 
-        $returnedResponse = $middleware->__invoke($request->reveal(), $response, function() {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(
+            'Worker requests must come from localhost, request originated from 123.43.45.242 given'
+        );
+
+        $middleware->__invoke($request->reveal(), $response, function() {
             $this->fail('Should not be called');
         });
-
-        $this->assertEquals(403, $returnedResponse->getStatusCode());
     }
 
     public function dockerIpAddresses()

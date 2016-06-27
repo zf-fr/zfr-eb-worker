@@ -4,6 +4,7 @@ namespace ZfrEbWorker\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use ZfrEbWorker\Exception\RuntimeException;
 
 /**
  * Middleware that protects the worker middleware by only allowing localhost requests
@@ -29,11 +30,14 @@ class LocalhostCheckerMiddleware
         callable $out = null
     ): ResponseInterface {
         $serverParams = $request->getServerParams();
-        $remoteAddr   = $serverParams['REMOTE_ADDR'] ?? '';
+        $remoteAddr   = $serverParams['REMOTE_ADDR'] ?? 'unknown IP address';
 
-        // If request is not originating from localhost or from Docker local IP, we simply return 200
+        // If request is not originating from localhost or from Docker local IP, we throw an RuntimeException
         if (!in_array($remoteAddr, $this->localhost) && !fnmatch('172.17.*', $remoteAddr)) {
-            return $response->withStatus(403);
+            throw new RuntimeException(sprintf(
+                'Worker requests must come from localhost, request originated from %s given',
+                $remoteAddr
+            ));
         }
 
         return $out($request, $response, $out);
