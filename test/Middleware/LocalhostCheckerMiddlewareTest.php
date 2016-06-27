@@ -45,7 +45,7 @@ class LocalhostCheckerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
         $middleware = new LocalhostCheckerMiddleware();
 
-        $returnedResponse = $middleware->__invoke($request->reveal(), $response, function($request, $response, $out) {
+        $returnedResponse = $middleware->__invoke($request->reveal(), $response, function($request, $response) {
             return $response;
         });
 
@@ -61,7 +61,7 @@ class LocalhostCheckerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
         $middleware = new LocalhostCheckerMiddleware();
 
-        $returnedResponse = $middleware->__invoke($request->reveal(), $response, function($request, $response, $out) {
+        $returnedResponse = $middleware->__invoke($request->reveal(), $response, function($request, $response) {
             return $response;
         });
 
@@ -77,7 +77,7 @@ class LocalhostCheckerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
         $middleware = new LocalhostCheckerMiddleware();
 
-        $returnedResponse = $middleware->__invoke($request->reveal(), $response, function($request, $response, $out) {
+        $returnedResponse = $middleware->__invoke($request->reveal(), $response, function($request, $response) {
             return $response;
         });
 
