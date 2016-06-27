@@ -33,7 +33,7 @@ class LocalhostCheckerMiddleware
 
         // If request is not originating from localhost, we simply return 200
         if (!in_array($remoteAddr, $this->localhost)) {
-            return $response->withStatus(200);
+            return $response->withStatus(403);
         }
 
         return $out($request, $response, $out);

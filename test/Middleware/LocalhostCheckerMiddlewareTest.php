@@ -21,7 +21,7 @@ class LocalhostCheckerMiddlewareTest extends \PHPUnit_Framework_TestCase
             $this->fail('Should not be called');
         });
 
-        $this->assertEquals(200, $returnedResponse->getStatusCode());
+        $this->assertEquals(403, $returnedResponse->getStatusCode());
     }
 
     public function testDelegateIfFromIPv4Localhost()
