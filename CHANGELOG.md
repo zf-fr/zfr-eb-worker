@@ -1,3 +1,7 @@
+# 5.1.0
+
+* ZfrEbWorker adds a new security improvement by restricting the internal worker to localhost only.
+
 # 5.0.0
 
 * Now uses [`Zend\ComponentInstaller`](https://zendframework.github.io/zend-component-installer/) for config
