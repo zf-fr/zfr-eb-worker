@@ -1,3 +1,7 @@
+# 5.1.2
+
+* Fixed a bug that prevented worker middleware to work properly when localhost checker middleware was used
+
 # 5.1.1
 
 * Adds support for detecting localhost requests coming from Docker environment
