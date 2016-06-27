@@ -24,6 +24,30 @@ class LocalhostCheckerMiddlewareTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(403, $returnedResponse->getStatusCode());
     }
 
+    public function dockerIpAddresses()
+    {
+        return [['172.17.42.1'], ['172.17.0.1']];
+    }
+
+    /**
+     * @dataProvider dockerIpAddresses
+     */
+    public function testDelegatesIfFromDockerLocal(string $ipAddress)
+    {
+        $request  = $this->prophesize(ServerRequestInterface::class);
+        $response = new Response();
+
+        $request->getServerParams()->shouldBeCalled()->willReturn(['REMOTE_ADDR' => $ipAddress]);
+
+        $middleware = new LocalhostCheckerMiddleware();
+
+        $returnedResponse = $middleware->__invoke($request->reveal(), $response, function($request, $response, $out) {
+            return $response;
+        });
+
+        $this->assertEquals(200, $returnedResponse->getStatusCode());
+    }
+
     public function testDelegateIfFromIPv4Localhost()
     {
         $request  = $this->prophesize(ServerRequestInterface::class);

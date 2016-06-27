@@ -1,3 +1,7 @@
+# 5.1.1
+
+* Adds support for detecting localhost requests coming from Docker environment
+
 # 5.1.0
 
 * ZfrEbWorker adds a new security improvement by restricting the internal worker to localhost only.

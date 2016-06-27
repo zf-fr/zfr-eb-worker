@@ -31,8 +31,8 @@ class LocalhostCheckerMiddleware
         $serverParams = $request->getServerParams();
         $remoteAddr   = $serverParams['REMOTE_ADDR'] ?? '';
 
-        // If request is not originating from localhost, we simply return 200
-        if (!in_array($remoteAddr, $this->localhost)) {
+        // If request is not originating from localhost or from Docker local IP, we simply return 200
+        if (!in_array($remoteAddr, $this->localhost) && !fnmatch('172.17.*', $remoteAddr)) {
             return $response->withStatus(403);
         }
 
