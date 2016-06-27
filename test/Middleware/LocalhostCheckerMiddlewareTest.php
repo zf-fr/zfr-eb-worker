@@ -8,7 +8,7 @@ use ZfrEbWorker\Middleware\LocalhostCheckerMiddleware;
 
 class LocalhostCheckerMiddlewareTest extends \PHPUnit_Framework_TestCase
 {
-    public function testReturns200IfNotFromLocalhost()
+    public function testReturns403IfNotFromLocalhost()
     {
         $request  = $this->prophesize(ServerRequestInterface::class);
         $response = new Response();
