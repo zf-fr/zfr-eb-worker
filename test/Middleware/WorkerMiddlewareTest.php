@@ -93,12 +93,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
             $container->get($mappedMiddleware)->shouldBeCalled()->willReturn([$this, 'incrementMiddleware']);
         }
 
-        $outWasCalled    = false;
-        $responseFromOut = new Response();
-
-        $out = function ($request, ResponseInterface $response) use (&$outWasCalled, $expectedCounter, $responseFromOut) {
-            $outWasCalled = true;
-
+        $out = function ($request, ResponseInterface $response) use ($expectedCounter) {
             $this->assertEquals('default-queue', $request->getAttribute(WorkerMiddleware::MATCHED_QUEUE_ATTRIBUTE));
             $this->assertEquals('123abc', $request->getAttribute(WorkerMiddleware::MESSAGE_ID_ATTRIBUTE));
             $this->assertEquals('message-name', $request->getAttribute(WorkerMiddleware::MESSAGE_NAME_ATTRIBUTE));
@@ -106,24 +101,14 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals($expectedCounter, $request->getAttribute('counter', 0));
             $this->assertEquals($expectedCounter, $response->hasHeader('counter') ? $response->getHeaderLine('counter') : 0);
 
-            return $responseFromOut;
+            return $response->withAddedHeader('foo', 'bar');
         };
 
+        /** @var ResponseInterface $returnedResponse */
         $returnedResponse = $middleware($request, $response, $out);
 
-        $this->assertTrue($outWasCalled, 'Make sure that $out middleware was called');
-        $this->assertSame($responseFromOut, $returnedResponse, 'Make sure that it returns response from $out');
-    }
-
-    public function testReturnsResponseIfNoOutMiddlewareIsProvided()
-    {
-        $middleware = new WorkerMiddleware(['message-name' => []], $this->prophesize(ContainerInterface::class)->reveal());
-        $request    = $this->createRequest();
-        $response   = new Response();
-
-        $returnedResponse = $middleware($request, $response);
-
-        $this->assertSame($response, $returnedResponse);
+        $this->assertEquals('bar', $returnedResponse->getHeaderLine('foo'), 'Make sure that $out was called');
+        $this->assertEquals('ZfrEbWorker', $returnedResponse->getHeaderLine('X-HANDLED-BY'), 'Make sure that it adds the X-HANDLED-BY header');
     }
 
     public function incrementMiddleware(ServerRequestInterface $request, ResponseInterface $response, callable $next): ResponseInterface
