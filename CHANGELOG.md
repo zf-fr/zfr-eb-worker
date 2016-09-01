@@ -1,3 +1,9 @@
+# 5.2.0
+
+* Always add a `X-Handled-By` to the response at the end of the worker pipeline. This allows to make sure that the original response is modified, as
+some middleware frameworks like `Zend\Expressive` returns a 404 if the response has not been modified at all. [#31]
+* Worker middleware can be simplified to only have `ServerRequestInterface` as unique parameter. [#30]
+
 # 5.1.2
 
 * Fixed a bug that prevented worker middleware to work properly when localhost checker middleware was used
