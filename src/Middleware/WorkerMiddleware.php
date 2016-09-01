@@ -85,7 +85,7 @@ class WorkerMiddleware
         $payload = $body['payload'];
 
         // Let's create a middleware pipeline of mapped middlewares
-        $pipeline = $this->createMiddlewarePipeline($name, $out);
+        $pipeline = new Pipeline($this->container, $this->getMiddlewaresForMessage($name), $out);
 
         // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request
         // attributes so they can be easier to process, and set the message attributes
@@ -98,14 +98,15 @@ class WorkerMiddleware
     }
 
     /**
-     * @param string        $messageName
-     * @param callable|null $out
+     * @param string $messageName
      *
-     * @return callable
+     * @return callable[]
+     * @throws RuntimeException
+     * @throws InvalidArgumentException
      */
-    private function createMiddlewarePipeline(string $messageName, callable $out = null): callable
+    private function getMiddlewaresForMessage(string $messageName): array
     {
-        if (!isset($this->messagesMapping[$messageName])) {
+        if (!array_key_exists($messageName, $this->messagesMapping)) {
             throw new RuntimeException(sprintf(
                 'No middleware was mapped for message "%s". Did you fill the "zfr_eb_worker" configuration?',
                 $messageName
@@ -115,7 +116,7 @@ class WorkerMiddleware
         $mappedMiddlewares = $this->messagesMapping[$messageName];
 
         if (is_string($mappedMiddlewares)) {
-            $mappedMiddlewares = (array) $mappedMiddlewares;
+            $mappedMiddlewares = [$mappedMiddlewares];
         }
 
         if (!is_array($mappedMiddlewares)) {
@@ -125,24 +126,6 @@ class WorkerMiddleware
             ));
         }
 
-        $pipeline = function (
-            ServerRequestInterface $request,
-            ResponseInterface $response
-        ) use (
-            &$pipeline,
-            &$mappedMiddlewares,
-            $out
-        ) {
-            if (empty($mappedMiddlewares)) {
-                return is_callable($out) ? $out($request, $response) : $response;
-            }
-
-            /** @var callable $middleware */
-            $middleware = $this->container->get(array_shift($mappedMiddlewares));
-
-            return $middleware($request, $response, $pipeline);
-        };
-
-        return $pipeline;
+        return $mappedMiddlewares;
     }
 }
