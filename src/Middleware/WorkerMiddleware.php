@@ -94,7 +94,10 @@ class WorkerMiddleware
             ->withAttribute(self::MESSAGE_PAYLOAD_ATTRIBUTE, $payload)
             ->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name);
 
-        return $pipeline($request, $response);
+        /** @var ResponseInterface $response */
+        $response = $pipeline($request, $response);
+
+        return $response->withHeader('X-HANDLED-BY', 'ZfrEbWorker');
     }
 
     /**
