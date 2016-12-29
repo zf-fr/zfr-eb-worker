@@ -126,8 +126,8 @@ You can also attach multiple listeners to a given message, hence allowing to do 
 ### Configuring Elastic Beanstalk
 
 Then, you should configure your Elastic Beanstalk worker environment to push messages to "/internal/worker" URL (this is the
-default URL configured if you use Zend Expressive). You could even add a pre-routing middleware to do additional security check
-on this URL.
+default URL configured if you use Zend Expressive). By default, ZfrEbWorker do additional security checks to ensure that the request
+is coming from localhost (as the daemon is installed on EC2 instances directly and push the messages locally):
 
 ### Pushing message
 
