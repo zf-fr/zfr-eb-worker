@@ -79,8 +79,9 @@ class WorkerMiddleware
         ResponseInterface $response,
         callable $out = null
     ): ResponseInterface {
-        // Two types of messages can be dispatched: either a periodic task or a normal task. For periodic tasks, the worker daemon automatically adds
-        // the "X-Aws-Sqsd-Taskname" header. When we find it, we simply use this name as the message name and continue the process
+        // Two types of messages can be dispatched: either a periodic task or a normal task. For periodic tasks,
+        // the worker daemon automatically adds the "X-Aws-Sqsd-Taskname" header. When we find it, we simply use this
+        // name as the message name and continue the process
 
         if ($request->hasHeader('X-Aws-Sqsd-Taskname')) {
             return $this->processPeriodicTask($request, $response, $out);
@@ -95,8 +96,11 @@ class WorkerMiddleware
      * @param   callable|null         $out
      * @return ResponseInterface
      */
-    private function processTask(ServerRequestInterface $request, ResponseInterface $response, callable $out = null): ResponseInterface
-    {
+    private function processTask(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        callable $out = null
+    ): ResponseInterface {
         // The full message is set as part of the body
         $body    = json_decode($request->getBody(), true);
         $name    = $body['name'];
@@ -124,8 +128,11 @@ class WorkerMiddleware
      * @param  callable|null          $out
      * @return ResponseInterface
      */
-    private function processPeriodicTask(ServerRequestInterface $request, ResponseInterface $response, callable $out = null): ResponseInterface
-    {
+    private function processPeriodicTask(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        callable $out = null
+    ): ResponseInterface {
         // The full message is set as part of the body
         $name = $request->getHeaderLine('X-Aws-Sqsd-Taskname');
 
