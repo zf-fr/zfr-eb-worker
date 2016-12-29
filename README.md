@@ -103,22 +103,22 @@ First, make sure to configure the ZfrEbWorker library by adding this config:
     ],
 
     'messages' => [
-        'project.created' => SendCampaignMiddleware::class,
-        'image.saved'     => ProcessImageMiddleware::class
+        'project.created' => SendCampaignListener::class,
+        'image.saved'     => ProcessImageListener::class
     ]
 ```
 
 The `queues` is an associative array of queue name and queue URL hosted on AWS SQS, while `messages` is an associative array that map
-a message name to a specific middleware.
+a message name to a specific listeners (each listener is just a standard middleware).
 
-You can also attach multiple middlewares to a given message, hence allowing to do different actions based on a message:
+You can also attach multiple listeners to a given message, hence allowing to do different actions based on a message:
 
 ```php
 'zfr_eb_worker' => [
     'messages' => [
         'image.saved' => [
-            OptimizeImageMiddleware::class,
-            UploadImageMiddleware::class
+            OptimizeImageListener::class,
+            UploadImageListener::class
         ]
     ]
 ```
@@ -179,17 +179,21 @@ ZfrEbWorker will automatically dispatch the incoming request to the middleware s
 stored inside various request attributes, as shown below:
 
 ```php
+use ZfrEbWorker\Middleware\WorkerMiddleware;
+
 class MyEventMiddleware
 {
     public function __invoke($request, $response, $out)
     {
-        $queue          = $request->getAttribute('worker.matched_queue');
-        $messageId      = $request->getAttribute('worker.message_id');
-        $messagePayload = $request->getAttribute('worker.message_payload');
-        $name           = $request->getAttribute('worker.message_name');
+        $queue          = $request->getAttribute(WorkerMiddleware::MATCHED_QUEUE_ATTRIBUTE);
+        $messageId      = $request->getAttribute(WorkerMiddleware::MESSAGE_ID_ATTRIBUTE);
+        $messagePayload = $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE);
+        $name           = $request->getAttribute(WorkerMiddleware::MESSAGE_NAME_ATTRIBUTE);
     }
 }
 ```
+
+> Note: for a periodic task, only the `Middleware::MESSAGE_NAME_ATTRIBUTE` is available.
 
 ### How to silently ignore some message?
 
@@ -206,9 +210,28 @@ Beanstalk to retry it later, you should map SilentFailingListener to the message
 
 ### How to use periodic tasks?
 
-Elastic Beanstalk also supports periodic tasks through the usage of `cron.yaml` file. However, this is actually easier as you can
-specify a different URL on a task-basis. Therefore, you can dispatch to the URL of your choice and immediately be re-routed to the
-correct middleware.
+Elastic Beanstalk also supports periodic tasks through the usage of `cron.yaml` file ([more info](http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features-managing-env-tiers.html#worker-periodictasks)).
+ZfrEbWorker supports this use case in the same, unified way.
+
+Simply redirect all your periodic tasks to the same "/internal/worker" route, and make sure that the task name you use is part of your config. For instance,
+here is a task called "image.backup" that will run every 12 hours:
+
+```yaml
+version: 1
+cron:
+  - name: "image.backup"
+    url: "/internal/worker"
+    schedule: "0 */12 * * *"
+```
+
+Then, in your ZfrEbWorker config, just configure it like any other messages:
+
+```php
+'zfr_eb_worker' => [
+    'messages' => [
+        'image.backup' => ImageBackupListener::class,
+    ]
+```
 
 ## CLI commands
 

@@ -1,3 +1,7 @@
+# 5.3.0
+
+* Add support for periodic tasks
+
 # 5.2.0
 
 * Always add a `X-Handled-By` to the response at the end of the worker pipeline. This allows to make sure that the original response is modified, as

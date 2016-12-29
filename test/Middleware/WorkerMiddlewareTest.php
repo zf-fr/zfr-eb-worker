@@ -34,10 +34,8 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
     {
         $middleware = new WorkerMiddleware([], $this->prophesize(ContainerInterface::class)->reveal());
 
-        $this->setExpectedException(
-            RuntimeException::class,
-            'No middleware was mapped for message "message-name". Did you fill the "zfr_eb_worker" configuration?'
-        );
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('No middleware was mapped for message "message-name". Did you fill the "zfr_eb_worker" configuration?');
 
         $middleware($this->createRequest(), new Response(), function() {
             $this->fail('$next should not be called');
@@ -48,10 +46,8 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
     {
         $middleware = new WorkerMiddleware(['message-name' => 10], $this->prophesize(ContainerInterface::class)->reveal());
 
-        $this->setExpectedException(
-            InvalidArgumentException::class,
-            'Mapped middleware must be either a string or an array of strings, integer given.'
-        );
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Mapped middleware must be either a string or an array of strings, integer given.');
 
         $middleware($this->createRequest(), new Response(), function() {
             $this->fail('$next should not be called');
@@ -62,10 +58,8 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
     {
         $middleware = new WorkerMiddleware(['message-name' => new \stdClass()], $this->prophesize(ContainerInterface::class)->reveal());
 
-        $this->setExpectedException(
-            InvalidArgumentException::class,
-            'Mapped middleware must be either a string or an array of strings, stdClass given.'
-        );
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Mapped middleware must be either a string or an array of strings, stdClass given.');
 
         $middleware($this->createRequest(), new Response(), function() {
             $this->fail('$next should not be called');
@@ -77,12 +71,13 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
      *
      * @param array|string $mappedMiddlewares
      * @param int          $expectedCounter
+     * @param bool         $isPeriodicTask
      */
-    public function testDispatchesMappedMiddlewares($mappedMiddlewares, int $expectedCounter)
+    public function testDispatchesMappedMiddlewaresFor($mappedMiddlewares, int $expectedCounter, bool $isPeriodicTask)
     {
         $container  = $this->prophesize(ContainerInterface::class);
         $middleware = new WorkerMiddleware(['message-name' => $mappedMiddlewares], $container->reveal());
-        $request    = $this->createRequest();
+        $request    = $this->createRequest($isPeriodicTask);
         $response   = new Response();
 
         if (is_string($mappedMiddlewares)) {
@@ -93,11 +88,15 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
             $container->get($mappedMiddleware)->shouldBeCalled()->willReturn([$this, 'incrementMiddleware']);
         }
 
-        $out = function ($request, ResponseInterface $response) use ($expectedCounter) {
-            $this->assertEquals('default-queue', $request->getAttribute(WorkerMiddleware::MATCHED_QUEUE_ATTRIBUTE));
-            $this->assertEquals('123abc', $request->getAttribute(WorkerMiddleware::MESSAGE_ID_ATTRIBUTE));
+        $out = function ($request, ResponseInterface $response) use ($expectedCounter, $isPeriodicTask) {
             $this->assertEquals('message-name', $request->getAttribute(WorkerMiddleware::MESSAGE_NAME_ATTRIBUTE));
-            $this->assertEquals(['id' => 123], $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE));
+
+            if (!$isPeriodicTask) {
+                $this->assertEquals('default-queue', $request->getAttribute(WorkerMiddleware::MATCHED_QUEUE_ATTRIBUTE));
+                $this->assertEquals('123abc', $request->getAttribute(WorkerMiddleware::MESSAGE_ID_ATTRIBUTE));
+                $this->assertEquals(['id' => 123], $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE));
+            }
+
             $this->assertEquals($expectedCounter, $request->getAttribute('counter', 0));
             $this->assertEquals($expectedCounter, $response->hasHeader('counter') ? $response->getHeaderLine('counter') : 0);
 
@@ -108,7 +107,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         $returnedResponse = $middleware($request, $response, $out);
 
         $this->assertEquals('bar', $returnedResponse->getHeaderLine('foo'), 'Make sure that $out was called');
-        $this->assertEquals('ZfrEbWorker', $returnedResponse->getHeaderLine('X-HANDLED-BY'), 'Make sure that it adds the X-HANDLED-BY header');
+        $this->assertEquals('ZfrEbWorker', $returnedResponse->getHeaderLine('X-Handled-By'), 'Make sure that it adds the X-Handled-By header');
     }
 
     public function incrementMiddleware(ServerRequestInterface $request, ResponseInterface $response, callable $next): ResponseInterface
@@ -123,22 +122,32 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
     public function mappedMiddlewaresProvider(): array
     {
         return [
-            [[], 0],
-            ['FooMiddleware', 1],
-            [['FooMiddleware'], 1],
-            [['FooMiddleware', 'BarMiddleware'], 2],
-            [['FooMiddleware', 'BarMiddleware', 'BazMiddleware'], 3],
+            [[], 0, false],
+            ['FooMiddleware', 1, false],
+            [['FooMiddleware'], 1, false],
+            [['FooMiddleware', 'BarMiddleware'], 2, false],
+            [['FooMiddleware', 'BarMiddleware', 'BazMiddleware'], 3, false],
+            [[], 0, true],
+            ['FooMiddleware', 1, true],
+            [['FooMiddleware'], 1, true],
+            [['FooMiddleware', 'BarMiddleware'], 2, true],
+            [['FooMiddleware', 'BarMiddleware', 'BazMiddleware'], 3, true],
         ];
     }
 
-    private function createRequest(): ServerRequestInterface
+    private function createRequest(bool $isPeriodicTask = false): ServerRequestInterface
     {
         $request = new ServerRequest();
-        $request = $request->withHeader('X-Aws-Sqsd-Queue', 'default-queue');
-        $request = $request->withHeader('X-Aws-Sqsd-Msgid', '123abc');
-        $request = $request->withBody(new Stream('php://temp', 'w'));
 
-        $request->getBody()->write(json_encode(['name' => 'message-name', 'payload' => ['id' => 123]]));
+        if ($isPeriodicTask) {
+            $request = $request->withHeader('X-Aws-Sqsd-Taskname', 'message-name');
+        } else {
+            $request = $request->withHeader('X-Aws-Sqsd-Queue', 'default-queue');
+            $request = $request->withHeader('X-Aws-Sqsd-Msgid', '123abc');
+            $request = $request->withBody(new Stream('php://temp', 'w'));
+
+            $request->getBody()->write(json_encode(['name' => 'message-name', 'payload' => ['id' => 123]]));
+        }
 
         return $request;
     }
