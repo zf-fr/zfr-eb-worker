@@ -90,15 +90,17 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
         $out = function ($request, ResponseInterface $response) use ($expectedCounter, $isPeriodicTask) {
             $this->assertEquals('message-name', $request->getAttribute(WorkerMiddleware::MESSAGE_NAME_ATTRIBUTE));
-
-            if (!$isPeriodicTask) {
-                $this->assertEquals('default-queue', $request->getAttribute(WorkerMiddleware::MATCHED_QUEUE_ATTRIBUTE));
-                $this->assertEquals('123abc', $request->getAttribute(WorkerMiddleware::MESSAGE_ID_ATTRIBUTE));
-                $this->assertEquals(['id' => 123], $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE));
-            }
-
+            $this->assertEquals('default-queue', $request->getAttribute(WorkerMiddleware::MATCHED_QUEUE_ATTRIBUTE));
+            $this->assertEquals('123abc', $request->getAttribute(WorkerMiddleware::MESSAGE_ID_ATTRIBUTE));
             $this->assertEquals($expectedCounter, $request->getAttribute('counter', 0));
             $this->assertEquals($expectedCounter, $response->hasHeader('counter') ? $response->getHeaderLine('counter') : 0);
+
+            if ($isPeriodicTask) {
+                // Elastic Beanstalk never push any body inside a periodic task
+                $this->assertEquals([], $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE));
+            } else {
+                $this->assertEquals(['id' => 123], $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE));
+            }
 
             return $response->withAddedHeader('foo', 'bar');
         };
@@ -139,13 +141,13 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
     {
         $request = new ServerRequest();
 
+        $request = $request->withHeader('X-Aws-Sqsd-Queue', 'default-queue');
+        $request = $request->withHeader('X-Aws-Sqsd-Msgid', '123abc');
+        $request = $request->withBody(new Stream('php://temp', 'w'));
+
         if ($isPeriodicTask) {
             $request = $request->withHeader('X-Aws-Sqsd-Taskname', 'message-name');
         } else {
-            $request = $request->withHeader('X-Aws-Sqsd-Queue', 'default-queue');
-            $request = $request->withHeader('X-Aws-Sqsd-Msgid', '123abc');
-            $request = $request->withBody(new Stream('php://temp', 'w'));
-
             $request->getBody()->write(json_encode(['name' => 'message-name', 'payload' => ['id' => 123]]));
         }
 

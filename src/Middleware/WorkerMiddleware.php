@@ -84,27 +84,15 @@ class WorkerMiddleware
         // name as the message name and continue the process
 
         if ($request->hasHeader('X-Aws-Sqsd-Taskname')) {
-            return $this->processPeriodicTask($request, $response, $out);
+            // The full message is set as part of the body
+            $name    = $request->getHeaderLine('X-Aws-Sqsd-Taskname');
+            $payload = [];
         } else {
-            return $this->processTask($request, $response, $out);
+            // The full message is set as part of the body
+            $body    = json_decode($request->getBody(), true);
+            $name    = $body['name'];
+            $payload = $body['payload'];
         }
-    }
-
-    /**
-     * @param  ServerRequestInterface $request
-     * @param  ResponseInterface      $response
-     * @param   callable|null         $out
-     * @return ResponseInterface
-     */
-    private function processTask(
-        ServerRequestInterface $request,
-        ResponseInterface $response,
-        callable $out = null
-    ): ResponseInterface {
-        // The full message is set as part of the body
-        $body    = json_decode($request->getBody(), true);
-        $name    = $body['name'];
-        $payload = $body['payload'];
 
         // Let's create a middleware pipeline of mapped middlewares
         $pipeline = new Pipeline($this->container, $this->getMiddlewaresForMessage($name), $out);
@@ -115,32 +103,6 @@ class WorkerMiddleware
             ->withAttribute(self::MESSAGE_ID_ATTRIBUTE, $request->getHeaderLine('X-Aws-Sqsd-Msgid'))
             ->withAttribute(self::MESSAGE_PAYLOAD_ATTRIBUTE, $payload)
             ->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name);
-
-        /** @var ResponseInterface $response */
-        $response = $pipeline($request, $response);
-
-        return $response->withHeader('X-Handled-By', 'ZfrEbWorker');
-    }
-
-    /**
-     * @param  ServerRequestInterface $request
-     * @param  ResponseInterface      $response
-     * @param  callable|null          $out
-     * @return ResponseInterface
-     */
-    private function processPeriodicTask(
-        ServerRequestInterface $request,
-        ResponseInterface $response,
-        callable $out = null
-    ): ResponseInterface {
-        // The full message is set as part of the body
-        $name = $request->getHeaderLine('X-Aws-Sqsd-Taskname');
-
-        // Let's create a middleware pipeline of mapped middlewares
-        $pipeline = new Pipeline($this->container, $this->getMiddlewaresForMessage($name), $out);
-
-        // For periodic tasks, Elastic Beanstalk set different headers than for normal tasks
-        $request = $request->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name);
 
         /** @var ResponseInterface $response */
         $response = $pipeline($request, $response);
