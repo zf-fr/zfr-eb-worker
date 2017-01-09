@@ -13,6 +13,6 @@ return [
                 WorkerMiddleware::class
             ],
             'allowed_methods' => ['POST'],
-        ],
+        ]
     ],
 ];

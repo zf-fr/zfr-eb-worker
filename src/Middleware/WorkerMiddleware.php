@@ -79,10 +79,20 @@ class WorkerMiddleware
         ResponseInterface $response,
         callable $out = null
     ): ResponseInterface {
-        // The full message is set as part of the body
-        $body    = json_decode($request->getBody(), true);
-        $name    = $body['name'];
-        $payload = $body['payload'];
+        // Two types of messages can be dispatched: either a periodic task or a normal task. For periodic tasks,
+        // the worker daemon automatically adds the "X-Aws-Sqsd-Taskname" header. When we find it, we simply use this
+        // name as the message name and continue the process
+
+        if ($request->hasHeader('X-Aws-Sqsd-Taskname')) {
+            // The full message is set as part of the body
+            $name    = $request->getHeaderLine('X-Aws-Sqsd-Taskname');
+            $payload = [];
+        } else {
+            // The full message is set as part of the body
+            $body    = json_decode($request->getBody(), true);
+            $name    = $body['name'];
+            $payload = $body['payload'];
+        }
 
         // Let's create a middleware pipeline of mapped middlewares
         $pipeline = new Pipeline($this->container, $this->getMiddlewaresForMessage($name), $out);
@@ -97,7 +107,7 @@ class WorkerMiddleware
         /** @var ResponseInterface $response */
         $response = $pipeline($request, $response);
 
-        return $response->withHeader('X-HANDLED-BY', 'ZfrEbWorker');
+        return $response->withHeader('X-Handled-By', 'ZfrEbWorker');
     }
 
     /**
