@@ -81,6 +81,7 @@ class WorkerMiddleware
         callable $out = null
     ): ResponseInterface {
         $this->assertLocalhost($request);
+        $this->assertSqsUserAgent($request);
 
         // Two types of messages can be dispatched: either a periodic task or a normal task. For periodic tasks,
         // the worker daemon automatically adds the "X-Aws-Sqsd-Taskname" header. When we find it, we simply use this
@@ -159,6 +160,18 @@ class WorkerMiddleware
                 'Worker requests must come from localhost, request originated from %s given',
                 $remoteAddr
             ));
+        }
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     */
+    private function assertSqsUserAgent(ServerRequestInterface $request)
+    {
+        $userAgent = $request->getHeaderLine('User-Agent');
+
+        if (false === strpos($userAgent, 'aws-sqsd')) {
+            throw new RuntimeException('Worker requests must come from "aws-sqsd" user agent');
         }
     }
 }

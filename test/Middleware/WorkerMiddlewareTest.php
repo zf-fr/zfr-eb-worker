@@ -82,6 +82,18 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    public function testThrowsExceptionIfNotSqsUserAgent()
+    {
+        $middleware = new WorkerMiddleware([], $this->prophesize(ContainerInterface::class)->reveal());
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Worker requests must come from "aws-sqsd" user agent');
+
+        $middleware($this->createRequest()->withoutHeader('User-Agent'), new Response(), function() {
+            $this->fail('$next should not be called');
+        });
+    }
+
     public function testThrowsExceptionIfNoMappedMiddleware()
     {
         $middleware = new WorkerMiddleware([], $this->prophesize(ContainerInterface::class)->reveal());
@@ -193,6 +205,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
     {
         $request = new ServerRequest(['REMOTE_ADDR' => $ipAddress]);
 
+        $request = $request->withHeader('User-Agent', 'aws-sqsd/1.1');
         $request = $request->withHeader('X-Aws-Sqsd-Queue', 'default-queue');
         $request = $request->withHeader('X-Aws-Sqsd-Msgid', '123abc');
         $request = $request->withBody(new Stream('php://temp', 'w'));
