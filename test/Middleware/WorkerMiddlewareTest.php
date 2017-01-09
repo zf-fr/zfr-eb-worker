@@ -148,7 +148,8 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         if ($isPeriodicTask) {
             $request = $request->withHeader('X-Aws-Sqsd-Taskname', 'message-name');
         } else {
-            $request->getBody()->write(json_encode(['name' => 'message-name', 'payload' => ['id' => 123]]));
+            $request = $request->withHeader('X-Aws-Sqsd-Attr-name', 'message-name');
+            $request->getBody()->write(json_encode(['id' => 123]));
         }
 
         return $request;

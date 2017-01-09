@@ -89,9 +89,8 @@ class WorkerMiddleware
             $payload = [];
         } else {
             // The full message is set as part of the body
-            $body    = json_decode($request->getBody(), true);
-            $name    = $body['name'];
-            $payload = $body['payload'];
+            $name    = $request->getHeaderLine('X-Aws-Sqsd-Attr-name');
+            $payload = json_decode($request->getBody(), true);
         }
 
         // Let's create a middleware pipeline of mapped middlewares
