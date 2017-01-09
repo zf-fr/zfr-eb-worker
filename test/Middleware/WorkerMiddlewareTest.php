@@ -30,6 +30,58 @@ use ZfrEbWorker\Middleware\WorkerMiddleware;
 
 class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @dataProvider provideIpAddresses
+     *
+     * @param string $ipAddress
+     * @param bool   $allowed
+     */
+    public function testThrowsExceptionIfNotFromLocalhost(string $ipAddress, bool $allowed)
+    {
+        $container  = $this->prophesize(ContainerInterface::class);
+        $middleware = new WorkerMiddleware(['message-name' => 'listener'], $container->reveal());
+
+        $request   = $this->createRequest($ipAddress);
+        $response  = new Response();
+
+        if (!$allowed) {
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage(sprintf(
+                'Worker requests must come from localhost, request originated from %s given',
+                $ipAddress
+            ));
+
+            $middleware->__invoke($request, $response, function() {
+                $this->fail('$next should not be called');
+            });
+
+            return;
+        }
+
+        $container->get('listener')->shouldBeCalled()->willReturn(
+            function ($request, $response) {
+                return $response;
+            }
+        );
+
+        $returnedResponse = $middleware->__invoke($request, $response, function() {
+            $this->fail('$next should not be called');
+        });
+
+        $this->assertSame('ZfrEbWorker', $returnedResponse->getHeaderLine('X-Handled-By'));
+    }
+
+    public function provideIpAddresses(): array
+    {
+        return [
+            ['127.0.0.1', true],
+            ['::1', true],
+            ['172.17.42.1', true],
+            ['172.17.0.1', true],
+            ['189.55.56.131', false]
+        ];
+    }
+
     public function testThrowsExceptionIfNoMappedMiddleware()
     {
         $middleware = new WorkerMiddleware([], $this->prophesize(ContainerInterface::class)->reveal());
@@ -77,7 +129,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
     {
         $container  = $this->prophesize(ContainerInterface::class);
         $middleware = new WorkerMiddleware(['message-name' => $mappedMiddlewares], $container->reveal());
-        $request    = $this->createRequest($isPeriodicTask);
+        $request    = $this->createRequest('127.0.0.1', $isPeriodicTask);
         $response   = new Response();
 
         if (is_string($mappedMiddlewares)) {
@@ -137,9 +189,9 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    private function createRequest(bool $isPeriodicTask = false): ServerRequestInterface
+    private function createRequest($ipAddress = '127.0.0.1', bool $isPeriodicTask = false): ServerRequestInterface
     {
-        $request = new ServerRequest();
+        $request = new ServerRequest(['REMOTE_ADDR' => $ipAddress]);
 
         $request = $request->withHeader('X-Aws-Sqsd-Queue', 'default-queue');
         $request = $request->withHeader('X-Aws-Sqsd-Msgid', '123abc');
