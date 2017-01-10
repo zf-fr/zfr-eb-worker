@@ -1,8 +1,8 @@
 # 6.0.0
 
-* [BC] `LocalhostCheckerMiddleware` has been removed. Now, all the security checks are done within the `WorkerMiddleware`. Especially, in addition of
+* [BC break] `LocalhostCheckerMiddleware` has been removed. Now, all the security checks are done within the `WorkerMiddleware`. Especially, in addition of
 the previous security check that enforced the request to come from localhost, we now also check the user agent to verify the request originated from Amazon.
-* [BC] The structure of messages has been modified. Previously, a message was encoded this way:
+* [BC break] The structure of messages has been modified. Previously, a message was encoded this way:
 
 ```json
 {
