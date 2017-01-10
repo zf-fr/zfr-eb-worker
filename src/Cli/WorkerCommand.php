@@ -104,10 +104,11 @@ class WorkerCommand extends Command
 
         while (true) {
             $messages = $this->sqsClient->receiveMessage([
-                'QueueUrl'            => $queueUrl,
-                'AttributeNames'      => ['All'],
-                'MaxNumberOfMessages' => 1,
-                'WaitTimeSeconds'     => 20
+                'QueueUrl'              => $queueUrl,
+                'AttributeNames'        => ['All'],
+                'MessageAttributeNames' => ['Name'],
+                'MaxNumberOfMessages'   => 1,
+                'WaitTimeSeconds'       => 20
             ]);
 
             if (!$messages->hasKey('Messages')) {
@@ -144,7 +145,8 @@ class WorkerCommand extends Command
                 'X-Aws-Sqsd-Queue'             => $queueName,
                 'X-Aws-Sqsd-First-Received-At' => $message['Attributes']['ApproximateFirstReceiveTimestamp'],
                 'X-Aws-Sqsd-Receive-Count'     => $message['Attributes']['ApproximateReceiveCount'],
-                'X-Aws-Sqsd-Sender-Id'         => $message['Attributes']['SenderId']
+                'X-Aws-Sqsd-Sender-Id'         => $message['Attributes']['SenderId'],
+                'X-Aws-Sqsd-Attr-Name'         => $message['MessageAttributes']['Name']['StringValue']
             ],
             'json' => json_decode($message['Body'], true)
         ]);
