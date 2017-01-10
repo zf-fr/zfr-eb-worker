@@ -53,9 +53,9 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
             'QueueUrl' => 'https://queue-url.aws.com',
             'Entries'  => [
                 [
-                    'Id' => 0,
+                    'Id'                => 0,
                     'MessageAttributes' => [
-                        'name' => [
+                        'Name' => [
                             'DataType'    => 'String',
                             'StringValue' => 'message-name',
                         ],
@@ -83,9 +83,9 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
             'QueueUrl' => 'https://queue-url.aws.com',
             'Entries'  => [
                 [
-                    'Id' => 0,
+                    'Id'                => 0,
                     'MessageAttributes' => [
-                        'name' => [
+                        'Name' => [
                             'DataType'    => 'String',
                             'StringValue' => 'message-name',
                         ],

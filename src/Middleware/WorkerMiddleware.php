@@ -89,7 +89,7 @@ class WorkerMiddleware
             $payload = [];
         } else {
             // The full message is set as part of the body
-            $name    = $request->getHeaderLine('X-Aws-Sqsd-Attr-name');
+            $name    = $request->getHeaderLine('X-Aws-Sqsd-Attr-Name');
             $payload = json_decode($request->getBody(), true);
         }
 

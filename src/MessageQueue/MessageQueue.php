@@ -106,9 +106,9 @@ class MessageQueue implements MessageQueueInterface
 
             foreach ($messagesToPush as $key => $message) {
                 $messageParameters = [
-                    'Id'           => $key, // Identifier of the message in the batch
+                    'Id'                => $key, // Identifier of the message in the batch
                     'MessageAttributes' => [
-                        'name' => [
+                        'Name' => [
                             'DataType'    => 'String',
                             'StringValue' => $message['name'],
                         ],
