@@ -1,3 +1,43 @@
+# 6.0.0
+
+* [BC break] `LocalhostCheckerMiddleware` has been removed. Now, all the security checks are done within the `WorkerMiddleware`. Especially, in addition of
+the previous security check that enforced the request to come from localhost, we now also check the user agent to verify the request originated from Amazon.
+* [BC break] The structure of messages has been modified. Previously, a message was encoded this way:
+
+```json
+{
+  "name": "message_name",
+  "payload": {
+    "id": "123",
+    "other": "value"
+  }
+}
+```
+
+Now, message body only contain the message content itself:
+
+```json
+{
+  "id": "123",
+  "other": "value"
+}
+```
+
+This allows for simpler messages, and prevent parsing the body to get the message name. The message name is now added through a "message attribute"
+called "Name".
+
+When a message is pushed by EC2 instances, the SQSD daemon automatically creates headers with the message attributes. In our case, the daemon automatically
+adds a header called `X-Aws-Sqsd-Attr-Name` that contains the message name, which is read by the worker to redirect to the proper listeners.
+
+This has two major consequences:
+
+1) Messages created using an older version won't be read by the newer version of the worker. This means that you'll need to deploy both your producer and
+consumer applications at the same time to minimize the problems. Once your consumer has been deployed, it may still received some messages coming in the old
+format (those created before the deployment). We recommend you to setup a dead letter queue to be able to gracefully retry your messages after.
+
+2) Because of the use of SQS attributes, you cannot any longer use this version with old Elastic Beanstalk environments. We therefore recommend you to update
+your worker environments to a 2016 IAM or later so that the daemon properly redirects the attributes.
+
 # 5.3.0
 
 * Add support for periodic tasks
