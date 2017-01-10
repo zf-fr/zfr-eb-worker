@@ -20,11 +20,9 @@ namespace ZfrEbWorkerTest\MessageQueue;
 
 use Aws\Sqs\SqsClient;
 use Prophecy\Argument;
-use ZfrEbWorker\Exception\UnknownQueueException;
 use ZfrEbWorker\Message\DelayedMessage;
 use ZfrEbWorker\Message\Message;
 use ZfrEbWorker\MessageQueue\MessageQueue;
-use ZfrEbWorker\Publisher\QueuePublisher;
 
 class MessageQueueTest extends \PHPUnit_Framework_TestCase
 {
@@ -55,9 +53,15 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
             'QueueUrl' => 'https://queue-url.aws.com',
             'Entries'  => [
                 [
-                    'Id'           => 0,
+                    'Id'                => 0,
+                    'MessageAttributes' => [
+                        'Name' => [
+                            'DataType'    => 'String',
+                            'StringValue' => 'message-name',
+                        ],
+                    ],
                     'DelaySeconds' => 0,
-                    'MessageBody'  => '{"name":"message-name","payload":{"id":123,"url":"https://www.test.com"}}'
+                    'MessageBody'  => '{"id":123,"url":"https://www.test.com"}'
                 ]
             ]
         ];
@@ -79,9 +83,15 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
             'QueueUrl' => 'https://queue-url.aws.com',
             'Entries'  => [
                 [
-                    'Id'           => 0,
+                    'Id'                => 0,
+                    'MessageAttributes' => [
+                        'Name' => [
+                            'DataType'    => 'String',
+                            'StringValue' => 'message-name',
+                        ],
+                    ],
                     'DelaySeconds' => 30,
-                    'MessageBody'  => '{"name":"message-name","payload":{"id":123}}'
+                    'MessageBody'  => '{"id":123}'
                 ]
             ]
         ];

@@ -69,13 +69,11 @@ class MessageQueue implements MessageQueueInterface
     public function push(MessageInterface $message)
     {
         $this->messages[] = [
+            'name'    => $message->getName(),
             'options' => [
-                'delay_seconds' => ($message instanceof DelayedMessage) ? $message->getDelay() : 0
+                'delay_seconds' => ($message instanceof DelayedMessage) ? $message->getDelay() : 0,
             ],
-            'body'    => [
-                'name'    => $message->getName(),
-                'payload' => $message->getPayload()
-            ]
+            'body' => $message->getPayload(),
         ];
     }
 
@@ -108,7 +106,13 @@ class MessageQueue implements MessageQueueInterface
 
             foreach ($messagesToPush as $key => $message) {
                 $messageParameters = [
-                    'Id'           => $key, // Identifier of the message in the batch
+                    'Id'                => $key, // Identifier of the message in the batch
+                    'MessageAttributes' => [
+                        'Name' => [
+                            'DataType'    => 'String',
+                            'StringValue' => $message['name'],
+                        ],
+                    ],
                     'MessageBody'  => json_encode($message['body'], self::DEFAULT_JSON_FLAGS),
                     'DelaySeconds' => $message['options']['delay_seconds'] ?? null
                 ];
