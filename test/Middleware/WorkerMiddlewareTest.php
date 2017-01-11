@@ -94,6 +94,27 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         });
     }
 
+    public function testUserAgentIsNotCaseSensitive()
+    {
+        $container  = $this->prophesize(ContainerInterface::class);
+        $middleware = new WorkerMiddleware(['message-name' => 'listener'], $container->reveal());
+
+        $request   = $this->createRequest()->withHeader('User-Agent', 'aws-SQSD/1.2');
+        $response  = new Response();
+
+        $container->get('listener')->shouldBeCalled()->willReturn(
+            function ($request, $response) {
+                return $response;
+            }
+        );
+
+        $returnedResponse = $middleware->__invoke($request, $response, function() {
+            $this->fail('$next should not be called');
+        });
+
+        $this->assertSame('ZfrEbWorker', $returnedResponse->getHeaderLine('X-Handled-By'));
+    }
+
     public function testThrowsExceptionIfNoMappedMiddleware()
     {
         $middleware = new WorkerMiddleware([], $this->prophesize(ContainerInterface::class)->reveal());

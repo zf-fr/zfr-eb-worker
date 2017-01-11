@@ -170,7 +170,7 @@ class WorkerMiddleware
     {
         $userAgent = $request->getHeaderLine('User-Agent');
 
-        if (false === strpos($userAgent, 'aws-sqsd')) {
+        if (false === stripos($userAgent, 'aws-sqsd')) {
             throw new RuntimeException('Worker requests must come from "aws-sqsd" user agent');
         }
     }
