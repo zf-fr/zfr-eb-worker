@@ -38,6 +38,7 @@ class WorkerMiddleware
     const MESSAGE_NAME_ATTRIBUTE    = 'worker.message_name';
     const MESSAGE_PAYLOAD_ATTRIBUTE = 'worker.message_payload';
     const MATCHED_QUEUE_ATTRIBUTE   = 'worker.matched_queue';
+    const LOCALHOST_ADDRESSES       = ['127.0.0.1', '::1'];
 
     /**
      * @var ContainerInterface
@@ -79,6 +80,9 @@ class WorkerMiddleware
         ResponseInterface $response,
         callable $out = null
     ): ResponseInterface {
+        $this->assertLocalhost($request);
+        $this->assertSqsUserAgent($request);
+
         // Two types of messages can be dispatched: either a periodic task or a normal task. For periodic tasks,
         // the worker daemon automatically adds the "X-Aws-Sqsd-Taskname" header. When we find it, we simply use this
         // name as the message name and continue the process
@@ -139,5 +143,34 @@ class WorkerMiddleware
         }
 
         return $mappedMiddlewares;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     */
+    private function assertLocalhost(ServerRequestInterface $request)
+    {
+        $serverParams = $request->getServerParams();
+        $remoteAddr   = $serverParams['REMOTE_ADDR'] ?? 'unknown IP address';
+
+        // If request is not originating from localhost or from Docker local IP, we throw an RuntimeException
+        if (!in_array($remoteAddr, self::LOCALHOST_ADDRESSES) && !fnmatch('172.17.*', $remoteAddr)) {
+            throw new RuntimeException(sprintf(
+                'Worker requests must come from localhost, request originated from %s given',
+                $remoteAddr
+            ));
+        }
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     */
+    private function assertSqsUserAgent(ServerRequestInterface $request)
+    {
+        $userAgent = $request->getHeaderLine('User-Agent');
+
+        if (false === stripos($userAgent, 'aws-sqsd')) {
+            throw new RuntimeException('Worker requests must come from "aws-sqsd" user agent');
+        }
     }
 }
