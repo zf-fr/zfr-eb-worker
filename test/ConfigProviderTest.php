@@ -27,7 +27,6 @@ class ConfigProviderTest extends \PHPUnit_Framework_TestCase
         $config = (new ConfigProvider())->__invoke();
 
         $this->assertArrayHasKey('dependencies', $config);
-        $this->assertArrayHasKey('routes', $config);
         $this->assertArrayHasKey('zfr_eb_worker', $config);
         $this->assertArrayHasKey('console', $config);
     }
