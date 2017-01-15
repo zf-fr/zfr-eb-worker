@@ -123,6 +123,16 @@ You can also attach multiple listeners to a given message, hence allowing to do 
     ]
 ```
 
+#### Registering WorkerMiddleware
+You should register the `WorkerMiddleware` in your router to respond the "/internal/worker" path.
+This middleware consumes the messages sent by Elastic Beanstalk worker environment and routes to the mapped listener. For example, in Zend Expressive:
+
+```php
+use ZfrEbWorker\Middleware\WorkerMiddleware;
+
+$app->post('/internal/worker', WorkerMiddleware::class);
+```
+
 ### Configuring Elastic Beanstalk
 
 Then, you should configure your Elastic Beanstalk worker environment to push messages to "/internal/worker" URL (this is the
