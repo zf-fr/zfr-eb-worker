@@ -187,14 +187,15 @@ $queue->push(new DelayedMessage('image.saved', ['image_id' => 123], 60));
 
 ### FIFO queues
 
-Starting from version 6, ZfrEbWorker supports FIFO queues. You can either push a standard message (in which case ZfrEbWorker will provide
-a default group ID), but you can also create a `FifoMessage` (or create your custom messages by implementing `FifoMessageInterface`) which allows
-you to provide a custom group ID and deduplication ID:
+Starting from version 6, ZfrEbWorker supports FIFO queues. You can provide custom group ID and deduplication ID in the third and
+fourth parameters, respectively:
 
 ```php
-$message = new FifoMessage('image.saved', ['image_id' => 123], 'group_id', 'deduplication_id');
+$message = new Message('image.saved', ['image_id' => 123], 'group_id', 'deduplication_id');
 $queue->push($message);
 ```
+
+If you do not provide a group ID, a default one will be generated.
 
 ### Retrieving message info
 

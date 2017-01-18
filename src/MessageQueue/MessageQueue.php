@@ -99,7 +99,7 @@ class MessageQueue implements MessageQueueInterface
     /**
      * @return bool
      */
-    public function isFifo(): bool
+    private function isFifo(): bool
     {
         return substr($this->url, -5) === '.fifo';
     }

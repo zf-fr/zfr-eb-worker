@@ -47,11 +47,4 @@ interface MessageQueueInterface
      * @return void
      */
     public function flush(bool $async = false);
-
-    /**
-     * Check if the queue is a FIFO queue
-     *
-     * @return bool
-     */
-    public function isFifo(): bool;
 }

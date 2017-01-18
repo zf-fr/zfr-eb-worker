@@ -21,7 +21,6 @@ namespace ZfrEbWorkerTest\MessageQueue;
 use Aws\Sqs\SqsClient;
 use Prophecy\Argument;
 use ZfrEbWorker\Message\DelayedMessage;
-use ZfrEbWorker\Message\FifoMessage;
 use ZfrEbWorker\Message\Message;
 use ZfrEbWorker\MessageQueue\MessageQueue;
 
@@ -104,7 +103,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
         $queue->flush();
     }
 
-    public function testCanPushFifoMessagesFromNormalMessages()
+    public function testCanPushFifoMessagesWithoutGroupId()
     {
         $this->sqsClient->sendMessageBatch(Argument::that(function(array $data) {
             $this->assertEquals(128, strlen($data['Entries'][0]['MessageGroupId']));
@@ -117,7 +116,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
         $queue->flush();
     }
 
-    public function testCanPushFifoMessagesFromFifoMessagesUsingNoDeduplicationId()
+    public function testCanPushFifoMessagesFromWithoutDeduplicationId()
     {
         $expectedPayload = [
             'QueueUrl' => 'https://queue-url.aws.com/test.fifo',
@@ -139,11 +138,11 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
         $this->sqsClient->sendMessageBatch($expectedPayload)->shouldBeCalled();
 
         $queue = new MessageQueue('https://queue-url.aws.com/test.fifo', $this->sqsClient->reveal());
-        $queue->push(new FifoMessage('message-name', ['id' => 123], 'group_id'));
+        $queue->push(new Message('message-name', ['id' => 123], 'group_id'));
         $queue->flush();
     }
 
-    public function testCanPushFifoMessagesFromFifoMessagesUsingCustomDeduplicationId()
+    public function testCanPushFifoMessagesFromUsingCustomDeduplicationId()
     {
         $expectedPayload = [
             'QueueUrl' => 'https://queue-url.aws.com/test.fifo',
@@ -166,7 +165,7 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
         $this->sqsClient->sendMessageBatch($expectedPayload)->shouldBeCalled();
 
         $queue = new MessageQueue('https://queue-url.aws.com/test.fifo', $this->sqsClient->reveal());
-        $queue->push(new FifoMessage('message-name', ['id' => 123], 'group_id', 'deduplication_id'));
+        $queue->push(new Message('message-name', ['id' => 123], 'group_id', 'deduplication_id'));
         $queue->flush();
     }
 
@@ -192,14 +191,5 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
 
         $queue->flush();
         $queue->flush();
-    }
-
-    public function testFifoQueue()
-    {
-        $queue = new MessageQueue('https://queue-url.aws.com/1234/test.fifo', $this->sqsClient->reveal());
-        $this->assertTrue($queue->isFifo());
-
-        $queue = new MessageQueue('https://queue-url.aws.com/1234/test', $this->sqsClient->reveal());
-        $this->assertFalse($queue->isFifo());
     }
 }
