@@ -183,6 +183,19 @@ Example usage:
 $queue->push(new DelayedMessage('image.saved', ['image_id' => 123], 60));
 ```
 
+> Note: if you are using a FIFO queue, this won't have any effect. On FIFO queue, delay can only be applied globally for a queue.
+
+### FIFO queues
+
+Starting from version 6, ZfrEbWorker supports FIFO queues. You can either push a standard message (in which case ZfrEbWorker will provide
+a default group ID), but you can also create a `FifoMessage` (or create your custom messages by implementing `FifoMessageInterface`) which allows
+you to provide a custom group ID and deduplication ID:
+
+```php
+$message = new FifoMessage('image.saved', ['image_id' => 123], 'group_id', 'deduplication_id');
+$queue->push($message);
+```
+
 ### Retrieving message info
 
 ZfrEbWorker will automatically dispatch the incoming request to the middleware specified for the given event. The message information is

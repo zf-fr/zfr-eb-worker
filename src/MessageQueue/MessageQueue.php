@@ -19,7 +19,10 @@
 namespace ZfrEbWorker\MessageQueue;
 
 use Aws\Sqs\SqsClient;
+use ZfrEbWorker\Exception\RuntimeException;
 use ZfrEbWorker\Message\DelayedMessage;
+use ZfrEbWorker\Message\DelayedMessageInterface;
+use ZfrEbWorker\Message\FifoMessageInterface;
 use ZfrEbWorker\Message\MessageInterface;
 
 /**
@@ -68,12 +71,19 @@ class MessageQueue implements MessageQueueInterface
      */
     public function push(MessageInterface $message)
     {
+        if ($message instanceof DelayedMessageInterface && $message->getDelay() > (15 * 60)) {
+            throw new RuntimeException(sprintf(
+                'SQS only support delayed message for up to 900 seconds (15 minutes), "%s" given',
+                $message->getDelay()
+            ));
+        }
+
         $this->messages[] = [
-            'name'    => $message->getName(),
-            'options' => [
-                'delay_seconds' => ($message instanceof DelayedMessage) ? $message->getDelay() : 0,
-            ],
-            'body' => $message->getPayload(),
+            'name'             => $message->getName(),
+            'delay_seconds'    => ($message instanceof DelayedMessageInterface) ? $message->getDelay() : 0,
+            'deduplication_id' => ($message instanceof FifoMessageInterface) ? $message->getDeduplicationId() : null,
+            'group_id'         => ($message instanceof FifoMessageInterface) ? $message->getGroupId() : bin2hex(random_bytes(64)),
+            'body'             => $message->getPayload(),
         ];
     }
 
@@ -84,6 +94,14 @@ class MessageQueue implements MessageQueueInterface
     {
         $this->doFlush($async);
         $this->messages = [];
+    }
+
+    /**
+     * @return bool
+     */
+    public function isFifo(): bool
+    {
+        return substr($this->url, -5) === '.fifo';
     }
 
     /**
@@ -114,8 +132,18 @@ class MessageQueue implements MessageQueueInterface
                         ],
                     ],
                     'MessageBody'  => json_encode($message['body'], self::DEFAULT_JSON_FLAGS),
-                    'DelaySeconds' => $message['options']['delay_seconds'] ?? null
+                    'DelaySeconds' => $message['delay_seconds']
                 ];
+
+                if ($this->isFifo()) {
+                    $messageParameters = array_merge($messageParameters, [
+                        'MessageDeduplicationId' => $message['deduplication_id'],
+                        'MessageGroupId'         => $message['group_id']
+                    ]);
+
+                    // In FIFO queue, delay message cannot be set per message
+                    unset($messageParameters['DelaySeconds']);
+                }
 
                 $parameters['Entries'][] = array_filter($messageParameters, function ($value) {
                     return $value !== null;
