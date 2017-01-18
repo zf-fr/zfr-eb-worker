@@ -7,7 +7,7 @@ ZfrEbWorker is a simple abstraction around SQS, aims to simplify the creation of
 
 ## Dependencies
 
-* PHP 7.0+
+* PHP 7.1+
 
 ## Installation
 
