@@ -7,14 +7,14 @@ ZfrEbWorker is a simple abstraction around SQS, aims to simplify the creation of
 
 ## Dependencies
 
-* PHP 7.0+
+* PHP 7.1+
 
 ## Installation
 
 Installation of ZfrEbWorker is only officially supported using Composer:
 
 ```sh
-php composer.phar require 'zfr/zfr-eb-worker:5.*'
+php composer.phar require 'zfr/zfr-eb-worker:6.*'
 ```
 
 ## How Elastic Beanstalk work?
@@ -182,6 +182,20 @@ Example usage:
 ```php
 $queue->push(new DelayedMessage('image.saved', ['image_id' => 123], 60));
 ```
+
+> Note: if you are using a FIFO queue, this won't have any effect. On FIFO queue, delay can only be applied globally for a queue.
+
+### FIFO queues
+
+Starting from version 6, ZfrEbWorker supports FIFO queues. You can provide custom group ID and deduplication ID in the third and
+fourth parameters, respectively:
+
+```php
+$message = new Message('image.saved', ['image_id' => 123], 'group_id', 'deduplication_id');
+$queue->push($message);
+```
+
+If you do not provide a group ID, a default one will be generated.
 
 ### Retrieving message info
 

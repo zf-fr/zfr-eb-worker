@@ -12,5 +12,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('test', $message->getName());
         $this->assertEquals(['foo' => 'bar'], $message->getPayload());
+        $this->assertEquals(128, strlen($message->getGroupId()));
     }
 }
