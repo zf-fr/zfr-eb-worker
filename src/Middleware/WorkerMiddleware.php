@@ -34,11 +34,12 @@ use ZfrEbWorker\Exception\RuntimeException;
  */
 class WorkerMiddleware
 {
-    const MESSAGE_ID_ATTRIBUTE      = 'worker.message_id';
-    const MESSAGE_NAME_ATTRIBUTE    = 'worker.message_name';
-    const MESSAGE_PAYLOAD_ATTRIBUTE = 'worker.message_payload';
-    const MATCHED_QUEUE_ATTRIBUTE   = 'worker.matched_queue';
-    const LOCALHOST_ADDRESSES       = ['127.0.0.1', '::1'];
+    const MESSAGE_ID_ATTRIBUTE           = 'worker.message_id';
+    const MESSAGE_NAME_ATTRIBUTE         = 'worker.message_name';
+    const MESSAGE_SCHEDULED_AT_ATTRIBUTE = 'worker.message_scheduled_at';
+    const MESSAGE_PAYLOAD_ATTRIBUTE      = 'worker.message_payload';
+    const MATCHED_QUEUE_ATTRIBUTE        = 'worker.matched_queue';
+    const LOCALHOST_ADDRESSES            = ['127.0.0.1', '::1'];
 
     /**
      * @var ContainerInterface
@@ -104,6 +105,7 @@ class WorkerMiddleware
         // attributes so they can be easier to process, and set the message attributes
         $request = $request->withAttribute(self::MATCHED_QUEUE_ATTRIBUTE, $request->getHeaderLine('X-Aws-Sqsd-Queue'))
             ->withAttribute(self::MESSAGE_ID_ATTRIBUTE, $request->getHeaderLine('X-Aws-Sqsd-Msgid'))
+            ->withAttribute(self::MESSAGE_SCHEDULED_AT_ATTRIBUTE, $request->getHeaderLine('X-Aws-Sqsd-Scheduled-At'))
             ->withAttribute(self::MESSAGE_PAYLOAD_ATTRIBUTE, $payload)
             ->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name);
 

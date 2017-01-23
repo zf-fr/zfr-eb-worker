@@ -18,6 +18,7 @@
 
 namespace ZfrEbWorkerTest\Middleware;
 
+use DateTimeImmutable;
 use Interop\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -160,9 +161,10 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
      */
     public function testDispatchesMappedMiddlewaresFor($mappedMiddlewares, int $expectedCounter, bool $isPeriodicTask)
     {
+        $now        = new DateTimeImmutable();
         $container  = $this->prophesize(ContainerInterface::class);
         $middleware = new WorkerMiddleware(['message-name' => $mappedMiddlewares], $container->reveal());
-        $request    = $this->createRequest('127.0.0.1', $isPeriodicTask);
+        $request    = $this->createRequest('127.0.0.1', $isPeriodicTask, $now);
         $response   = new Response();
 
         if (is_string($mappedMiddlewares)) {
@@ -173,7 +175,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
             $container->get($mappedMiddleware)->shouldBeCalled()->willReturn([$this, 'incrementMiddleware']);
         }
 
-        $out = function ($request, ResponseInterface $response) use ($expectedCounter, $isPeriodicTask) {
+        $out = function ($request, ResponseInterface $response) use ($expectedCounter, $isPeriodicTask, $now) {
             $this->assertEquals('message-name', $request->getAttribute(WorkerMiddleware::MESSAGE_NAME_ATTRIBUTE));
             $this->assertEquals('default-queue', $request->getAttribute(WorkerMiddleware::MATCHED_QUEUE_ATTRIBUTE));
             $this->assertEquals('123abc', $request->getAttribute(WorkerMiddleware::MESSAGE_ID_ATTRIBUTE));
@@ -183,8 +185,10 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
             if ($isPeriodicTask) {
                 // Elastic Beanstalk never push any body inside a periodic task
                 $this->assertEquals([], $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE));
+                $this->assertEquals($now->format('c'), $request->getAttribute(WorkerMiddleware::MESSAGE_SCHEDULED_AT_ATTRIBUTE));
             } else {
                 $this->assertEquals(['id' => 123], $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE));
+                $this->assertEquals('', $request->getAttribute(WorkerMiddleware::MESSAGE_SCHEDULED_AT_ATTRIBUTE));
             }
 
             return $response->withAddedHeader('foo', 'bar');
@@ -222,8 +226,9 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    private function createRequest($ipAddress = '127.0.0.1', bool $isPeriodicTask = false): ServerRequestInterface
+    private function createRequest($ipAddress = '127.0.0.1', bool $isPeriodicTask = false, DateTimeImmutable $date = null): ServerRequestInterface
     {
+        $date    = $date ?? new DateTimeImmutable();
         $request = new ServerRequest(['REMOTE_ADDR' => $ipAddress]);
 
         $request = $request->withHeader('User-Agent', 'aws-sqsd/1.1');
@@ -233,6 +238,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
         if ($isPeriodicTask) {
             $request = $request->withHeader('X-Aws-Sqsd-Taskname', 'message-name');
+            $request = $request->withHeader('X-Aws-Sqsd-Scheduled-At', $date->format('c'));
         } else {
             $request = $request->withHeader('X-Aws-Sqsd-Attr-Name', 'message-name');
             $request->getBody()->write(json_encode(['id' => 123]));
