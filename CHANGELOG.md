@@ -3,6 +3,7 @@
 * Dependency has been bumped to PHP 7.1.
 * A new `DelayedMessageInterface` has now been added.
 * Support for FIFO queues has been added.
+* [BC break] Middlewares are now compatible with latest HTTP middlewares interfaces.
 * [BC break] `LocalhostCheckerMiddleware` has been removed. Now, all the security checks are done within the `WorkerMiddleware`. Especially, in addition of
 the previous security check that enforced the request to come from localhost, we now also check the user agent to verify the request originated from Amazon.
 * [BC break] Worker route is not added automatically anymore. You will need to manually attach the middleware to the path of your choice.

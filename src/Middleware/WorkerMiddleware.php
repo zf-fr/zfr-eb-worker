@@ -19,6 +19,8 @@
 namespace ZfrEbWorker\Middleware;
 
 use Interop\Container\ContainerInterface;
+use Interop\Http\ServerMiddleware\DelegateInterface;
+use Interop\Http\ServerMiddleware\MiddlewareInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ZfrEbWorker\Exception\InvalidArgumentException;
@@ -32,7 +34,7 @@ use ZfrEbWorker\Exception\RuntimeException;
  *
  * @author Michaël Gallego
  */
-class WorkerMiddleware
+class WorkerMiddleware implements MiddlewareInterface
 {
     const MESSAGE_ID_ATTRIBUTE           = 'worker.message_id';
     const MESSAGE_NAME_ATTRIBUTE         = 'worker.message_name';
@@ -71,16 +73,12 @@ class WorkerMiddleware
 
     /**
      * @param ServerRequestInterface $request
-     * @param ResponseInterface      $response
-     * @param callable|null          $out
+     * @param DelegateInterface      $delegate
      *
      * @return ResponseInterface
      */
-    public function __invoke(
-        ServerRequestInterface $request,
-        ResponseInterface $response,
-        callable $out = null
-    ): ResponseInterface {
+    public function process(ServerRequestInterface $request, DelegateInterface $delegate): ResponseInterface
+    {
         $this->assertLocalhost($request);
         $this->assertSqsUserAgent($request);
 
@@ -98,9 +96,6 @@ class WorkerMiddleware
             $payload = json_decode($request->getBody(), true);
         }
 
-        // Let's create a middleware pipeline of mapped middlewares
-        $pipeline = new Pipeline($this->container, $this->getMiddlewaresForMessage($name), $out);
-
         // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request
         // attributes so they can be easier to process, and set the message attributes
         $request = $request->withAttribute(self::MATCHED_QUEUE_ATTRIBUTE, $request->getHeaderLine('X-Aws-Sqsd-Queue'))
@@ -109,8 +104,13 @@ class WorkerMiddleware
             ->withAttribute(self::MESSAGE_PAYLOAD_ATTRIBUTE, $payload)
             ->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name);
 
-        /** @var ResponseInterface $response */
-        $response = $pipeline($request, $response);
+        // Let's create a middleware pipeline of mapped middlewares
+        $middlewares = $this->getMiddlewaresForMessage($name);
+        $response    = null;
+
+        foreach ($middlewares as $middleware) {
+            $response = $middleware->process($request, $delegate);
+        }
 
         return $response->withHeader('X-Handled-By', 'ZfrEbWorker');
     }
@@ -118,7 +118,7 @@ class WorkerMiddleware
     /**
      * @param string $messageName
      *
-     * @return callable[]
+     * @return MiddlewareInterface[]
      * @throws RuntimeException
      * @throws InvalidArgumentException
      */

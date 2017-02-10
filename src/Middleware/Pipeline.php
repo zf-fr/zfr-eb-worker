@@ -3,6 +3,8 @@
 namespace ZfrEbWorker\Middleware;
 
 use Interop\Container\ContainerInterface;
+use Interop\Http\ServerMiddleware\DelegateInterface;
+use Interop\Http\ServerMiddleware\MiddlewareInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -22,39 +24,34 @@ final class Pipeline
     private $middlewares = [];
 
     /**
-     * @var null|callable
-     */
-    private $out;
-
-    /**
      * @param ContainerInterface $container
      * @param callable[]         $middlewares
-     * @param null|callable      $out
      */
-    public function __construct(ContainerInterface $container, array $middlewares, callable $out = null)
+    public function __construct(ContainerInterface $container, array $middlewares)
     {
         $this->container   = $container;
         $this->middlewares = $middlewares;
-        $this->out         = $out;
     }
 
     /**
      * @param ServerRequestInterface $request
-     * @param ResponseInterface      $response
+     * @param DelegateInterface      $delegate
      *
      * @return ResponseInterface
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function __invoke(ServerRequestInterface $request, DelegateInterface $delegate): ResponseInterface
     {
-        if (0 === count($this->middlewares)) {
-            $out = $this->out;
-
-            return null !== $out ? $out($request, $response) : $response;
+        if (empty($this->middlewares)) {
+            return $delegate->process($request);
         }
 
-        /** @var callable $middleware */
+        /** @var MiddlewareInterface $middleware */
         $middleware = $this->container->get(array_shift($this->middlewares));
-        $result     = $middleware($request, $response, $this);
+
+        foreach ($this->middlewares as $middleware) {
+
+        }
+        $response   = $middleware->process($request, $delegate);
 
         return $result instanceof ResponseInterface ? $result : $response;
     }
