@@ -19,6 +19,8 @@
 namespace ZfrEbWorker\Middleware;
 
 use Interop\Container\ContainerInterface;
+use Interop\Http\ServerMiddleware\DelegateInterface;
+use Interop\Http\ServerMiddleware\MiddlewareInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ZfrEbWorker\Exception\InvalidArgumentException;
@@ -32,7 +34,7 @@ use ZfrEbWorker\Exception\RuntimeException;
  *
  * @author Michaël Gallego
  */
-class WorkerMiddleware
+class WorkerMiddleware implements MiddlewareInterface
 {
     const MESSAGE_ID_ATTRIBUTE           = 'worker.message_id';
     const MESSAGE_NAME_ATTRIBUTE         = 'worker.message_name';
@@ -47,12 +49,9 @@ class WorkerMiddleware
     private $container;
 
     /**
-     * Map message names to a list middleware names. For instance:
+     * Map message names to a middleware name. For instance:
      * [
-     *     'image.saved' => [
-     *         WorkerAuthenticationMiddleware::class,
-     *         ProcessImageMiddleware::class,
-     *     ],
+     *     'image.saved' => ProcessImageMiddleware::class
      * ]
      *
      * @var array
@@ -71,16 +70,12 @@ class WorkerMiddleware
 
     /**
      * @param ServerRequestInterface $request
-     * @param ResponseInterface      $response
-     * @param callable|null          $out
+     * @param DelegateInterface      $delegate
      *
      * @return ResponseInterface
      */
-    public function __invoke(
-        ServerRequestInterface $request,
-        ResponseInterface $response,
-        callable $out = null
-    ): ResponseInterface {
+    public function process(ServerRequestInterface $request, DelegateInterface $delegate): ResponseInterface
+    {
         $this->assertLocalhost($request);
         $this->assertSqsUserAgent($request);
 
@@ -98,9 +93,6 @@ class WorkerMiddleware
             $payload = json_decode($request->getBody(), true);
         }
 
-        // Let's create a middleware pipeline of mapped middlewares
-        $pipeline = new Pipeline($this->container, $this->getMiddlewaresForMessage($name), $out);
-
         // Elastic Beanstalk set several headers. We will extract some of them and add them as part of the request
         // attributes so they can be easier to process, and set the message attributes
         $request = $request->withAttribute(self::MATCHED_QUEUE_ATTRIBUTE, $request->getHeaderLine('X-Aws-Sqsd-Queue'))
@@ -109,8 +101,9 @@ class WorkerMiddleware
             ->withAttribute(self::MESSAGE_PAYLOAD_ATTRIBUTE, $payload)
             ->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name);
 
-        /** @var ResponseInterface $response */
-        $response = $pipeline($request, $response);
+        // Let's create a middleware pipeline of mapped middlewares
+        $middleware = $this->getMiddlewareForMessage($name);
+        $response   = $middleware->process($request, $delegate);
 
         return $response->withHeader('X-Handled-By', 'ZfrEbWorker');
     }
@@ -118,11 +111,11 @@ class WorkerMiddleware
     /**
      * @param string $messageName
      *
-     * @return callable[]
+     * @return MiddlewareInterface
      * @throws RuntimeException
      * @throws InvalidArgumentException
      */
-    private function getMiddlewaresForMessage(string $messageName): array
+    private function getMiddlewareForMessage(string $messageName): MiddlewareInterface
     {
         if (!array_key_exists($messageName, $this->messagesMapping)) {
             throw new RuntimeException(sprintf(
@@ -131,20 +124,16 @@ class WorkerMiddleware
             ));
         }
 
-        $mappedMiddlewares = $this->messagesMapping[$messageName];
+        $mappedMiddleware = $this->messagesMapping[$messageName];
 
-        if (is_string($mappedMiddlewares)) {
-            $mappedMiddlewares = [$mappedMiddlewares];
-        }
-
-        if (!is_array($mappedMiddlewares)) {
+        if (!is_string($mappedMiddleware)) {
             throw new InvalidArgumentException(sprintf(
-                'Mapped middleware must be either a string or an array of strings, %s given.',
-                is_object($mappedMiddlewares) ? get_class($mappedMiddlewares) : gettype($mappedMiddlewares)
+                'Mapped middleware must be a string, %s given.',
+                is_object($mappedMiddleware) ? get_class($mappedMiddleware) : gettype($mappedMiddleware)
             ));
         }
 
-        return $mappedMiddlewares;
+        return $this->container->get($mappedMiddleware);
     }
 
     /**
