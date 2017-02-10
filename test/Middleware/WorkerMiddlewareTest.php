@@ -20,6 +20,9 @@ namespace ZfrEbWorkerTest\Middleware;
 
 use DateTimeImmutable;
 use Interop\Container\ContainerInterface;
+use Interop\Http\ServerMiddleware\DelegateInterface;
+use Interop\Http\ServerMiddleware\MiddlewareInterface;
+use Prophecy\Argument;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response;
@@ -40,6 +43,7 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
     public function testThrowsExceptionIfNotFromLocalhost(string $ipAddress, bool $allowed)
     {
         $container  = $this->prophesize(ContainerInterface::class);
+        $delegate   = $this->prophesize(DelegateInterface::class);
         $middleware = new WorkerMiddleware(['message-name' => 'listener'], $container->reveal());
 
         $request   = $this->createRequest($ipAddress);
@@ -52,22 +56,17 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
                 $ipAddress
             ));
 
-            $middleware->__invoke($request, $response, function() {
-                $this->fail('$next should not be called');
-            });
+            $container->get('listener')->shouldNotBeCalled();
+            $middleware->process($request, $delegate->reveal());
 
             return;
         }
 
-        $container->get('listener')->shouldBeCalled()->willReturn(
-            function ($request, $response) {
-                return $response;
-            }
-        );
+        $middlewareListener = $this->prophesize(MiddlewareInterface::class);
+        $container->get('listener')->shouldBeCalled()->willReturn($middlewareListener->reveal());
+        $middlewareListener->process(Argument::type(ServerRequestInterface::class), $delegate->reveal())->shouldBeCalled()->willReturn($response);
 
-        $returnedResponse = $middleware->__invoke($request, $response, function() {
-            $this->fail('$next should not be called');
-        });
+        $returnedResponse = $middleware->process($request, $delegate->reveal());
 
         $this->assertSame('ZfrEbWorker', $returnedResponse->getHeaderLine('X-Handled-By'));
     }
@@ -85,102 +84,98 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
     public function testThrowsExceptionIfNotSqsUserAgent()
     {
-        $middleware = new WorkerMiddleware([], $this->prophesize(ContainerInterface::class)->reveal());
+        $container  = $this->prophesize(ContainerInterface::class);
+        $middleware = new WorkerMiddleware([], $container->reveal());
+        $delegate   = $this->prophesize(DelegateInterface::class);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Worker requests must come from "aws-sqsd" user agent');
 
-        $middleware($this->createRequest()->withoutHeader('User-Agent'), new Response(), function() {
-            $this->fail('$next should not be called');
-        });
+        $container->get(Argument::any())->shouldNotBeCalled();
+
+        $middleware->process($this->createRequest()->withoutHeader('User-Agent'), $delegate->reveal());
     }
 
     public function testUserAgentIsNotCaseSensitive()
     {
         $container  = $this->prophesize(ContainerInterface::class);
         $middleware = new WorkerMiddleware(['message-name' => 'listener'], $container->reveal());
+        $delegate   = $this->prophesize(DelegateInterface::class);
 
         $request   = $this->createRequest()->withHeader('User-Agent', 'aws-SQSD/1.2');
         $response  = new Response();
 
-        $container->get('listener')->shouldBeCalled()->willReturn(
-            function ($request, $response) {
-                return $response;
-            }
-        );
+        $middlewareListener = $this->prophesize(MiddlewareInterface::class);
 
-        $returnedResponse = $middleware->__invoke($request, $response, function() {
-            $this->fail('$next should not be called');
-        });
+        $container->get('listener')->shouldBeCalled()->willReturn($middlewareListener->reveal());
+        $middlewareListener->process(Argument::type(ServerRequestInterface::class), $delegate->reveal())->shouldBeCalled()->willReturn($response);
+
+        $returnedResponse = $middleware->process($request, $delegate->reveal());
 
         $this->assertSame('ZfrEbWorker', $returnedResponse->getHeaderLine('X-Handled-By'));
     }
 
     public function testThrowsExceptionIfNoMappedMiddleware()
     {
-        $middleware = new WorkerMiddleware([], $this->prophesize(ContainerInterface::class)->reveal());
+        $container  = $this->prophesize(ContainerInterface::class);
+        $middleware = new WorkerMiddleware([], $container->reveal());
+        $delegate   = $this->prophesize(DelegateInterface::class);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('No middleware was mapped for message "message-name". Did you fill the "zfr_eb_worker" configuration?');
 
-        $middleware($this->createRequest(), new Response(), function() {
-            $this->fail('$next should not be called');
-        });
+        $container->get(Argument::any())->shouldNotBeCalled();
+
+        $middleware->process($this->createRequest(), $delegate->reveal());
     }
 
     public function testThrowsExceptionIfInvalidMappedMiddlewareType()
     {
-        $middleware = new WorkerMiddleware(['message-name' => 10], $this->prophesize(ContainerInterface::class)->reveal());
+        $container  = $this->prophesize(ContainerInterface::class);
+        $middleware = new WorkerMiddleware(['message-name' => 10], $container->reveal());
+        $delegate   = $this->prophesize(DelegateInterface::class);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Mapped middleware must be either a string or an array of strings, integer given.');
+        $this->expectExceptionMessage('Mapped middleware must be a string, integer given.');
 
-        $middleware($this->createRequest(), new Response(), function() {
-            $this->fail('$next should not be called');
-        });
+        $middleware->process($this->createRequest(), $delegate->reveal());
     }
 
     public function testThrowsExceptionIfInvalidMappedMiddlewareClass()
     {
-        $middleware = new WorkerMiddleware(['message-name' => new \stdClass()], $this->prophesize(ContainerInterface::class)->reveal());
+        $container  = $this->prophesize(ContainerInterface::class);
+        $middleware = new WorkerMiddleware(['message-name' => new \stdClass()], $container->reveal());
+        $delegate   = $this->prophesize(DelegateInterface::class);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Mapped middleware must be either a string or an array of strings, stdClass given.');
+        $this->expectExceptionMessage('Mapped middleware must be a string, stdClass given.');
 
-        $middleware($this->createRequest(), new Response(), function() {
-            $this->fail('$next should not be called');
-        });
+        $middleware->process($this->createRequest(), $delegate->reveal());
     }
 
     /**
      * @dataProvider mappedMiddlewaresProvider
      *
-     * @param array|string $mappedMiddlewares
-     * @param int          $expectedCounter
-     * @param bool         $isPeriodicTask
+     * @param string $mappedMiddleware
+     * @param bool   $isPeriodicTask
      */
-    public function testDispatchesMappedMiddlewaresFor($mappedMiddlewares, int $expectedCounter, bool $isPeriodicTask)
+    public function testDispatchesMappedMiddlewareFor(string $mappedMiddleware, bool $isPeriodicTask)
     {
         $now        = new DateTimeImmutable();
         $container  = $this->prophesize(ContainerInterface::class);
-        $middleware = new WorkerMiddleware(['message-name' => $mappedMiddlewares], $container->reveal());
+        $delegate   = $this->prophesize(DelegateInterface::class);
+        $middleware = new WorkerMiddleware(['message-name' => $mappedMiddleware], $container->reveal());
         $request    = $this->createRequest('127.0.0.1', $isPeriodicTask, $now);
         $response   = new Response();
 
-        if (is_string($mappedMiddlewares)) {
-            $mappedMiddlewares = (array) $mappedMiddlewares;
-        }
+        $middlewareListener = $this->prophesize(MiddlewareInterface::class);
 
-        foreach ($mappedMiddlewares as $mappedMiddleware) {
-            $container->get($mappedMiddleware)->shouldBeCalled()->willReturn([$this, 'incrementMiddleware']);
-        }
+        $container->get($mappedMiddleware)->shouldBeCalled()->willReturn($middlewareListener->reveal());
 
-        $out = function ($request, ResponseInterface $response) use ($expectedCounter, $isPeriodicTask, $now) {
+        $middlewareListener->process(Argument::that(function(ServerRequestInterface $request) use ($isPeriodicTask, $now) {
             $this->assertEquals('message-name', $request->getAttribute(WorkerMiddleware::MESSAGE_NAME_ATTRIBUTE));
             $this->assertEquals('default-queue', $request->getAttribute(WorkerMiddleware::MATCHED_QUEUE_ATTRIBUTE));
             $this->assertEquals('123abc', $request->getAttribute(WorkerMiddleware::MESSAGE_ID_ATTRIBUTE));
-            $this->assertEquals($expectedCounter, $request->getAttribute('counter', 0));
-            $this->assertEquals($expectedCounter, $response->hasHeader('counter') ? $response->getHeaderLine('counter') : 0);
 
             if ($isPeriodicTask) {
                 // Elastic Beanstalk never push any body inside a periodic task
@@ -191,38 +186,20 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
                 $this->assertEquals('', $request->getAttribute(WorkerMiddleware::MESSAGE_SCHEDULED_AT_ATTRIBUTE));
             }
 
-            return $response->withAddedHeader('foo', 'bar');
-        };
+            return true;
+        }), $delegate->reveal())->shouldBeCalled()->willReturn($response);
 
         /** @var ResponseInterface $returnedResponse */
-        $returnedResponse = $middleware($request, $response, $out);
-
-        $this->assertEquals('bar', $returnedResponse->getHeaderLine('foo'), 'Make sure that $out was called');
+        $returnedResponse = $middleware->process($request, $delegate->reveal());
+        
         $this->assertEquals('ZfrEbWorker', $returnedResponse->getHeaderLine('X-Handled-By'), 'Make sure that it adds the X-Handled-By header');
-    }
-
-    public function incrementMiddleware(ServerRequestInterface $request, ResponseInterface $response, callable $next): ResponseInterface
-    {
-        $counter  = $request->getAttribute('counter', 0) + 1;
-        $request  = $request->withAttribute('counter', $counter);
-        $response = $response->withHeader('counter', (string) $counter);
-
-        return $next($request, $response);
     }
 
     public function mappedMiddlewaresProvider(): array
     {
         return [
-            [[], 0, false],
-            ['FooMiddleware', 1, false],
-            [['FooMiddleware'], 1, false],
-            [['FooMiddleware', 'BarMiddleware'], 2, false],
-            [['FooMiddleware', 'BarMiddleware', 'BazMiddleware'], 3, false],
-            [[], 0, true],
-            ['FooMiddleware', 1, true],
-            [['FooMiddleware'], 1, true],
-            [['FooMiddleware', 'BarMiddleware'], 2, true],
-            [['FooMiddleware', 'BarMiddleware', 'BazMiddleware'], 3, true],
+            ['FooMiddleware', false],
+            ['FooMiddleware', true],
         ];
     }
 

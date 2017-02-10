@@ -4,6 +4,8 @@
 * A new `DelayedMessageInterface` has now been added.
 * Support for FIFO queues has been added.
 * [BC break] Middlewares are now compatible with latest HTTP middlewares interfaces.
+* [BC break] You cannot any longer map multiple middlewares to a single event name. It introduced a lot of complexities to the code and does not map
+well to the new approach of middlewares. A better approach now is to use a command bus mechanism to dispatch to multiple handlers.
 * [BC break] `LocalhostCheckerMiddleware` has been removed. Now, all the security checks are done within the `WorkerMiddleware`. Especially, in addition of
 the previous security check that enforced the request to come from localhost, we now also check the user agent to verify the request originated from Amazon.
 * [BC break] Worker route is not added automatically anymore. You will need to manually attach the middleware to the path of your choice.

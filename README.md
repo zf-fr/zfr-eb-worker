@@ -111,18 +111,6 @@ First, make sure to configure the ZfrEbWorker library by adding this config:
 The `queues` is an associative array of queue name and queue URL hosted on AWS SQS, while `messages` is an associative array that map
 a message name to a specific listeners (each listener is just a standard middleware).
 
-You can also attach multiple listeners to a given message, hence allowing to do different actions based on a message:
-
-```php
-'zfr_eb_worker' => [
-    'messages' => [
-        'image.saved' => [
-            OptimizeImageListener::class,
-            UploadImageListener::class
-        ]
-    ]
-```
-
 #### Registering WorkerMiddleware
 You should register the `WorkerMiddleware` in your router to respond the "/internal/worker" path.
 This middleware consumes the messages sent by Elastic Beanstalk worker environment and routes to the mapped listener. For example, in Zend Expressive:

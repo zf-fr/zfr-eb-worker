@@ -49,12 +49,9 @@ class WorkerMiddleware implements MiddlewareInterface
     private $container;
 
     /**
-     * Map message names to a list middleware names. For instance:
+     * Map message names to a middleware name. For instance:
      * [
-     *     'image.saved' => [
-     *         WorkerAuthenticationMiddleware::class,
-     *         ProcessImageMiddleware::class,
-     *     ],
+     *     'image.saved' => ProcessImageMiddleware::class
      * ]
      *
      * @var array
@@ -105,12 +102,8 @@ class WorkerMiddleware implements MiddlewareInterface
             ->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name);
 
         // Let's create a middleware pipeline of mapped middlewares
-        $middlewares = $this->getMiddlewaresForMessage($name);
-        $response    = null;
-
-        foreach ($middlewares as $middleware) {
-            $response = $middleware->process($request, $delegate);
-        }
+        $middleware = $this->getMiddlewareForMessage($name);
+        $response   = $middleware->process($request, $delegate);
 
         return $response->withHeader('X-Handled-By', 'ZfrEbWorker');
     }
@@ -118,11 +111,11 @@ class WorkerMiddleware implements MiddlewareInterface
     /**
      * @param string $messageName
      *
-     * @return MiddlewareInterface[]
+     * @return MiddlewareInterface
      * @throws RuntimeException
      * @throws InvalidArgumentException
      */
-    private function getMiddlewaresForMessage(string $messageName): array
+    private function getMiddlewareForMessage(string $messageName): MiddlewareInterface
     {
         if (!array_key_exists($messageName, $this->messagesMapping)) {
             throw new RuntimeException(sprintf(
@@ -131,20 +124,16 @@ class WorkerMiddleware implements MiddlewareInterface
             ));
         }
 
-        $mappedMiddlewares = $this->messagesMapping[$messageName];
+        $mappedMiddleware = $this->messagesMapping[$messageName];
 
-        if (is_string($mappedMiddlewares)) {
-            $mappedMiddlewares = [$mappedMiddlewares];
-        }
-
-        if (!is_array($mappedMiddlewares)) {
+        if (!is_string($mappedMiddleware)) {
             throw new InvalidArgumentException(sprintf(
-                'Mapped middleware must be either a string or an array of strings, %s given.',
-                is_object($mappedMiddlewares) ? get_class($mappedMiddlewares) : gettype($mappedMiddlewares)
+                'Mapped middleware must be a string, %s given.',
+                is_object($mappedMiddleware) ? get_class($mappedMiddleware) : gettype($mappedMiddleware)
             ));
         }
 
-        return $mappedMiddlewares;
+        return $this->container->get($mappedMiddleware);
     }
 
     /**
