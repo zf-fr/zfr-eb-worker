@@ -99,7 +99,8 @@ class WorkerMiddleware implements MiddlewareInterface
             ->withAttribute(self::MESSAGE_ID_ATTRIBUTE, $request->getHeaderLine('X-Aws-Sqsd-Msgid'))
             ->withAttribute(self::MESSAGE_SCHEDULED_AT_ATTRIBUTE, $request->getHeaderLine('X-Aws-Sqsd-Scheduled-At'))
             ->withAttribute(self::MESSAGE_PAYLOAD_ATTRIBUTE, $payload)
-            ->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name);
+            ->withAttribute(self::MESSAGE_NAME_ATTRIBUTE, $name)
+            ->withParsedBody($payload);
 
         // Let's create a middleware pipeline of mapped middlewares
         $middleware = $this->getMiddlewareForMessage($name);

@@ -181,9 +181,11 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
                 // Elastic Beanstalk never push any body inside a periodic task
                 $this->assertEquals([], $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE));
                 $this->assertEquals($now->format('c'), $request->getAttribute(WorkerMiddleware::MESSAGE_SCHEDULED_AT_ATTRIBUTE));
+                $this->assertEmpty($request->getParsedBody());
             } else {
                 $this->assertEquals(['id' => 123], $request->getAttribute(WorkerMiddleware::MESSAGE_PAYLOAD_ATTRIBUTE));
                 $this->assertEquals('', $request->getAttribute(WorkerMiddleware::MESSAGE_SCHEDULED_AT_ATTRIBUTE));
+                $this->assertEquals(['id' => 123], $request->getParsedBody());
             }
 
             return true;
