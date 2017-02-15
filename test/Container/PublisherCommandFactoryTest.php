@@ -18,7 +18,7 @@
 
 namespace ZfrEbWorkerTest\Container;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use ZfrEbWorker\Container\PublisherCommandFactory;
 use ZfrEbWorker\MessageQueue\MessageQueueRepositoryInterface;
 

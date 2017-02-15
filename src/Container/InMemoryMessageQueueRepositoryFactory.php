@@ -3,7 +3,7 @@
 namespace ZfrEbWorker\Container;
 
 use Aws\Sdk as AwsSdk;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use ZfrEbWorker\Exception\RuntimeException;
 use ZfrEbWorker\MessageQueue\InMemoryMessageQueueRepository;
 

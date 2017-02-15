@@ -2,7 +2,7 @@
 
 namespace ZfrEbWorker\Container;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use ZfrEbWorker\Cli\PublisherCommand;
 use ZfrEbWorker\MessageQueue\InMemoryMessageQueueRepository;
 use ZfrEbWorker\MessageQueue\MessageQueueRepositoryInterface;
