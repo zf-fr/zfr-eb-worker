@@ -18,9 +18,9 @@
 
 namespace ZfrEbWorker\Middleware;
 
-use Interop\Container\ContainerInterface;
 use Interop\Http\ServerMiddleware\DelegateInterface;
 use Interop\Http\ServerMiddleware\MiddlewareInterface;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use ZfrEbWorker\Exception\InvalidArgumentException;

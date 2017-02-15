@@ -18,7 +18,7 @@
 
 namespace ZfrEbWorker\Container;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use ZfrEbWorker\Exception\RuntimeException;
 use ZfrEbWorker\Middleware\WorkerMiddleware;
 

@@ -20,7 +20,7 @@ namespace ZfrEbWorkerTest\Container;
 
 use Aws\Sdk as AwsSdk;
 use Aws\Sqs\SqsClient;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use ZfrEbWorker\Container\WorkerCommandFactory;
 
 class WorkerCommandFactoryTest extends \PHPUnit_Framework_TestCase

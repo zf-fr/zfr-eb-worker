@@ -4,7 +4,7 @@ namespace ZfrEbWorker\Container;
 
 use Aws\Sdk as AwsSdk;
 use GuzzleHttp\Client as HttpClient;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use ZfrEbWorker\Cli\WorkerCommand;
 
 /**

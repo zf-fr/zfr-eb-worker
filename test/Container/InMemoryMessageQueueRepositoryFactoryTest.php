@@ -20,7 +20,7 @@ namespace ZfrEbWorkerTest\Container;
 
 use Aws\Sdk as AwsSdk;
 use Aws\Sqs\SqsClient;
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use ZfrEbWorker\Container\InMemoryMessageQueueRepositoryFactory;
 use ZfrEbWorker\Exception\RuntimeException;
 
