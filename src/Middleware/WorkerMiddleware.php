@@ -106,6 +106,14 @@ class WorkerMiddleware implements MiddlewareInterface
         $middleware = $this->getMiddlewareForMessage($name);
         $response   = $middleware->process($request, $delegate);
 
+        // Some middleware may return a 204 or any other 2xx answer, which are considered as success. However Elastic Beanstalk is picky
+        // and only accept 200 OK to delete message. So we normalize any status in the 2xx range
+        $statusCode = $response->getStatusCode();
+
+        if ($statusCode >= 200 && $statusCode <= 299) {
+            $response = $response->withStatus(200);
+        }
+
         return $response->withHeader('X-Handled-By', 'ZfrEbWorker');
     }
 

@@ -153,6 +153,27 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
         $middleware->process($this->createRequest(), $delegate->reveal());
     }
 
+    public function testNormalizeSuccessStatusCode()
+    {
+        $container  = $this->prophesize(ContainerInterface::class);
+        $delegate   = $this->prophesize(DelegateInterface::class);
+        $middleware = new WorkerMiddleware(['message-name' => 'FooMiddleware'], $container->reveal());
+        $request    = $this->createRequest('127.0.0.1', false);
+        $response   = new Response\EmptyResponse();
+
+        $middlewareListener = $this->prophesize(MiddlewareInterface::class);
+
+        $container->get('FooMiddleware')->shouldBeCalled()->willReturn($middlewareListener->reveal());
+
+        $middlewareListener->process(Argument::cetera())->shouldBeCalled()->willReturn($response);
+
+        /** @var ResponseInterface $returnedResponse */
+        $returnedResponse = $middleware->process($request, $delegate->reveal());
+
+        $this->assertEquals('ZfrEbWorker', $returnedResponse->getHeaderLine('X-Handled-By'), 'Make sure that it adds the X-Handled-By header');
+        $this->assertEquals(200, $returnedResponse->getStatusCode(), '204 has been changed to 200 for message deletion');
+    }
+
     /**
      * @dataProvider mappedMiddlewaresProvider
      *
