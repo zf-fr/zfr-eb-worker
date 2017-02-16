@@ -3,6 +3,8 @@
 * Dependency has been bumped to PHP 7.1.
 * A new `DelayedMessageInterface` has now been added.
 * Support for FIFO queues has been added.
+* If you return any 2xx from your worker middleware (like 204), it will now be transformed as 200 before being returned to Elastic Beanstalk, so that those
+messages are also deleted from the queue. Previously, returning a 204 would retry the job.
 * [BC break] Middlewares are now compatible with latest HTTP middlewares interfaces.
 * [BC break] You cannot any longer map multiple middlewares to a single event name. It introduced a lot of complexities to the code and does not map
 well to the new approach of middlewares. A better approach now is to use a command bus mechanism to dispatch to multiple handlers.
