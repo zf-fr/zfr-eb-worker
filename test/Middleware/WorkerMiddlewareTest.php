@@ -165,7 +165,9 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
 
         $container->get('FooMiddleware')->shouldBeCalled()->willReturn($middlewareListener->reveal());
 
-        $middlewareListener->process(Argument::cetera())->shouldBeCalled()->willReturn($response);
+        $middlewareListener->process(
+            Argument::type(ServerRequestInterface::class), Argument::type(DelegateInterface::class)
+        )->shouldBeCalled()->willReturn($response);
 
         /** @var ResponseInterface $returnedResponse */
         $returnedResponse = $middleware->process($request, $delegate->reveal());
