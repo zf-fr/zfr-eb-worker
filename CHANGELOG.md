@@ -1,3 +1,7 @@
+# 6.0.1
+
+* Fix an issue with the `SilentFailingListener`.
+
 # 6.0.0
 
 * Dependency has been bumped to PHP 7.1.

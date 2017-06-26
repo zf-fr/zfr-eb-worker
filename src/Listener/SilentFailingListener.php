@@ -2,26 +2,21 @@
 
 namespace ZfrEbWorker\Listener;
 
-use Psr\Http\Message\ResponseInterface;
+use Interop\Http\ServerMiddleware\DelegateInterface;
+use Interop\Http\ServerMiddleware\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\Response\EmptyResponse;
 
 /**
  * @author Daniel Gimenes
  */
-final class SilentFailingListener
+class SilentFailingListener implements MiddlewareInterface
 {
     /**
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface      $response
-     * @param callable               $next
-     *
-     * @return ResponseInterface
+     * {@inheritDoc}
      */
-    public function __invoke(
-        ServerRequestInterface $request,
-        ResponseInterface $response,
-        callable $next
-    ): ResponseInterface {
-        return $response->withStatus(200);
+    public function process(ServerRequestInterface $request, DelegateInterface $delegate)
+    {
+        return new EmptyResponse(200);
     }
 }
