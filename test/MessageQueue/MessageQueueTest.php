@@ -19,6 +19,7 @@
 namespace ZfrEbWorkerTest\MessageQueue;
 
 use Aws\Sqs\SqsClient;
+use GuzzleHttp\Promise\Promise;
 use Prophecy\Argument;
 use ZfrEbWorker\Message\DelayedMessage;
 use ZfrEbWorker\Message\Message;
@@ -31,9 +32,15 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
      */
     private $sqsClient;
 
+    /**
+     * @var \Prophecy\Prophecy\ObjectProphecy
+     */
+    private $promise;
+
     public function setUp()
     {
         $this->sqsClient = $this->prophesize(SqsClient::class);
+        $this->promise = $this->prophesize(Promise::class);
     }
 
     public function pushMode()
@@ -67,6 +74,8 @@ class MessageQueueTest extends \PHPUnit_Framework_TestCase
         ];
 
         if ($async) {
+            $this->promise->wait()->shouldBeCalled();
+            $this->sqsClient->sendMessageBatchAsync($expectedPayload)->willReturn($this->promise);
             $this->sqsClient->sendMessageBatchAsync($expectedPayload)->shouldBeCalled();
         } else {
             $this->sqsClient->sendMessageBatch($expectedPayload)->shouldBeCalled();
