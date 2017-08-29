@@ -151,7 +151,9 @@ class MessageQueue implements MessageQueueInterface
             }
 
             if ($async) {
-                $this->sqsClient->sendMessageBatchAsync($parameters);
+                $promise = $this->sqsClient->sendMessageBatchAsync($parameters);
+
+                $promise->wait();
             } else {
                 $this->sqsClient->sendMessageBatch($parameters);
             }
