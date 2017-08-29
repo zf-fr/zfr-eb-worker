@@ -1,3 +1,7 @@
+# 6.0.2
+
+* Fix an issue with validating Docker IP detection.
+
 # 6.0.1
 
 * Fix an issue with the `SilentFailingListener`.
