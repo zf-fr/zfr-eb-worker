@@ -77,6 +77,8 @@ class WorkerMiddlewareTest extends \PHPUnit_Framework_TestCase
             ['127.0.0.1', true],
             ['::1', true],
             ['172.17.42.1', true],
+            ['172.20.42.1', true],
+            ['172.18.42.1', true],
             ['172.17.0.1', true],
             ['189.55.56.131', false]
         ];
