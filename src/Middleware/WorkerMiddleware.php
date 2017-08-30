@@ -154,7 +154,7 @@ class WorkerMiddleware implements MiddlewareInterface
         $remoteAddr   = $serverParams['REMOTE_ADDR'] ?? 'unknown IP address';
 
         // If request is not originating from localhost or from Docker local IP, we throw an RuntimeException
-        if (!in_array($remoteAddr, self::LOCALHOST_ADDRESSES) && !fnmatch('172.1*.*', $remoteAddr)) {
+        if (!in_array($remoteAddr, self::LOCALHOST_ADDRESSES) && !fnmatch('172.*', $remoteAddr)) {
             throw new RuntimeException(sprintf(
                 'Worker requests must come from localhost, request originated from %s given',
                 $remoteAddr
