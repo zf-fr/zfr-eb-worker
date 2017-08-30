@@ -1,3 +1,7 @@
+# 6.0.3
+
+* Fix another issue with validating Docker IP :D.
+
 # 6.0.2
 
 * Fix an issue with validating Docker IP detection.
