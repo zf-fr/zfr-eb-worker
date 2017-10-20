@@ -4,7 +4,6 @@ namespace ZfrEbWorkerTest\Listener;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Webimpress\HttpMiddlewareCompatibility\HandlerInterface as DelegateInterface;
-use Webimpress\HttpMiddlewareCompatibility\MiddlewareInterface;
 use ZfrEbWorker\Listener\SilentFailingListener;
 
 /**
