@@ -1,3 +1,7 @@
+# 6.1.0
+
+Add support for http-interop/http-middleware 0.5
+
 # 6.0.3
 
 * Fix another issue with validating Docker IP :D.
