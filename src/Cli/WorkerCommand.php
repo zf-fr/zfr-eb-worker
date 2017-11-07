@@ -137,17 +137,21 @@ class WorkerCommand extends Command
         string $queueUrl,
         OutputInterface $output
     ) {
+        $headers = [
+            'User-Agent'                   => 'aws-sqsd/2.0',
+            'Content-Type'                 => 'application/json',
+            'X-Aws-Sqsd-Msgid'             => $message['MessageId'],
+            'X-Aws-Sqsd-Queue'             => $queueName,
+            'X-Aws-Sqsd-First-Received-At' => $message['Attributes']['ApproximateFirstReceiveTimestamp'],
+            'X-Aws-Sqsd-Receive-Count'     => $message['Attributes']['ApproximateReceiveCount'],
+            'X-Aws-Sqsd-Sender-Id'         => $message['Attributes']['SenderId'],
+        ];
+        if (isset($message['MessageAttributes']['Name']['StringValue'])) {
+            $headers['X-Aws-Sqsd-Attr-Name'] = $message['MessageAttributes']['Name']['StringValue'];
+        }
+
         $response = $this->httpClient->post($uri, [
-            'headers' => [
-                'User-Agent'                   => 'aws-sqsd/2.0',
-                'Content-Type'                 => 'application/json',
-                'X-Aws-Sqsd-Msgid'             => $message['MessageId'],
-                'X-Aws-Sqsd-Queue'             => $queueName,
-                'X-Aws-Sqsd-First-Received-At' => $message['Attributes']['ApproximateFirstReceiveTimestamp'],
-                'X-Aws-Sqsd-Receive-Count'     => $message['Attributes']['ApproximateReceiveCount'],
-                'X-Aws-Sqsd-Sender-Id'         => $message['Attributes']['SenderId'],
-                'X-Aws-Sqsd-Attr-Name'         => $message['MessageAttributes']['Name']['StringValue']
-            ],
+            'headers' => $headers,
             'json' => json_decode($message['Body'], true)
         ]);
 
