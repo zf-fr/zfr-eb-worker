@@ -10,6 +10,7 @@ use ZfrEbWorker\Container\WorkerMiddlewareFactory;
 use ZfrEbWorker\Listener\SilentFailingListener;
 use ZfrEbWorker\MessageQueue\InMemoryMessageQueueRepository;
 use ZfrEbWorker\MessageQueue\MessageQueueRepositoryInterface;
+use ZfrEbWorker\Middleware\IdentifyAwsInternalEventsMiddleware;
 use ZfrEbWorker\Middleware\WorkerMiddleware;
 
 return [
@@ -19,11 +20,12 @@ return [
         ],
 
         'factories' => [
-            InMemoryMessageQueueRepository::class => InMemoryMessageQueueRepositoryFactory::class,
-            PublisherCommand::class               => PublisherCommandFactory::class,
-            SilentFailingListener::class          => InvokableFactory::class,
-            WorkerCommand::class                  => WorkerCommandFactory::class,
-            WorkerMiddleware::class               => WorkerMiddlewareFactory::class,
+            InMemoryMessageQueueRepository::class      => InMemoryMessageQueueRepositoryFactory::class,
+            PublisherCommand::class                    => PublisherCommandFactory::class,
+            SilentFailingListener::class               => InvokableFactory::class,
+            WorkerCommand::class                       => WorkerCommandFactory::class,
+            WorkerMiddleware::class                    => WorkerMiddlewareFactory::class,
+            IdentifyAwsInternalEventsMiddleware::class => InvokableFactory::class,
         ]
     ],
 ];
