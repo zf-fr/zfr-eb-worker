@@ -20,19 +20,25 @@ namespace ZfrEbWorker\Container;
 
 use Psr\Container\ContainerInterface;
 use ZfrEbWorker\Exception\RuntimeException;
-use ZfrEbWorker\Middleware\WorkerMiddleware;
+use ZfrEbWorker\Middleware\MessageRouterMiddleware;
 
 /**
- * @author Michaël Gallego
+ * @author Benoît Osterberger
  */
-class WorkerMiddlewareFactory
+class MessageRouterMiddlewareFactory
 {
     /**
      * @param  ContainerInterface $container
-     * @return WorkerMiddleware
+     * @return MessageRouterMiddleware
      */
-    public function __invoke(ContainerInterface $container): WorkerMiddleware
+    public function __invoke(ContainerInterface $container): MessageRouterMiddleware
     {
-        return new WorkerMiddleware();
+        $config = $container->get('config');
+
+        if (!isset($config['zfr_eb_worker'])) {
+            throw new RuntimeException('Key "zfr_eb_worker" is missing');
+        }
+
+        return new MessageRouterMiddleware($config['zfr_eb_worker']['messages'], $container);
     }
 }
