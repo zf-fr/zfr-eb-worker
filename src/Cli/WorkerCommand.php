@@ -146,10 +146,8 @@ class WorkerCommand extends Command
             'X-Aws-Sqsd-First-Received-At' => $message['Attributes']['ApproximateFirstReceiveTimestamp'],
             'X-Aws-Sqsd-Receive-Count'     => $message['Attributes']['ApproximateReceiveCount'],
             'X-Aws-Sqsd-Sender-Id'         => $message['Attributes']['SenderId'],
+            'X-Aws-Sqsd-Attr-Name'         => (isset($message['MessageAttributes']['Name']['StringValue'])) ? $message['MessageAttributes']['Name']['StringValue'] : null;
         ];
-        if (isset($message['MessageAttributes']['Name']['StringValue'])) {
-            $headers['X-Aws-Sqsd-Attr-Name'] = $message['MessageAttributes']['Name']['StringValue'];
-        }
 
         try {
             $response = $this->httpClient->post($uri, [
