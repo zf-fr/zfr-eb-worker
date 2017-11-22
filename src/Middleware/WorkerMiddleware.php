@@ -64,8 +64,7 @@ class WorkerMiddleware implements MiddlewareInterface
             $payload = [];
         } else {
             // The full message is set as part of the body
-            // if no specific header is set use a default value, the event should be handled by subsequent middlewares
-            $name    = $request->hasHeader('X-Aws-Sqsd-Attr-Name') ? $request->getHeaderLine('X-Aws-Sqsd-Attr-Name') : 'default-message';
+            $name    = $request->getHeaderLine('X-Aws-Sqsd-Attr-Name');
             $payload = json_decode($request->getBody(), true);
         }
 
