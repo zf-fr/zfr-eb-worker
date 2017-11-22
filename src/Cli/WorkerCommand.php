@@ -5,6 +5,7 @@ namespace ZfrEbWorker\Cli;
 use Aws\Sqs\Exception\SqsException;
 use Aws\Sqs\SqsClient;
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\ClientException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -150,28 +151,37 @@ class WorkerCommand extends Command
             $headers['X-Aws-Sqsd-Attr-Name'] = $message['MessageAttributes']['Name']['StringValue'];
         }
 
-        $response = $this->httpClient->post($uri, [
-            'headers' => $headers,
-            'json' => json_decode($message['Body'], true)
-        ]);
-
-        if ($response->getStatusCode() === 200) {
-            $this->sqsClient->deleteMessage([
-                'QueueUrl'      => $queueUrl,
-                'ReceiptHandle' => $message['ReceiptHandle']
+        try {
+            $response = $this->httpClient->post($uri, [
+                'headers' => $headers,
+                'json' => json_decode($message['Body'], true)
             ]);
 
-            $output->writeln(sprintf(
-                '<info>Message "%s" has been processed and deleted from the queue "%s".</info>',
-                $message['MessageId'],
-                $queueName
-            ));
-        } else {
+            if ($response->getStatusCode() === 200) {
+                $this->sqsClient->deleteMessage([
+                    'QueueUrl'      => $queueUrl,
+                    'ReceiptHandle' => $message['ReceiptHandle']
+                ]);
+
+                $output->writeln(sprintf(
+                    '<info>Message "%s" has been processed and deleted from the queue "%s".</info>',
+                    $message['MessageId'],
+                    $queueName
+                ));
+            } else {
+                $output->writeln(sprintf(
+                    '<error>Message "%s" could not be processed and back-end returned error %s. Reason: %s</error>',
+                    $message['MessageId'],
+                    $response->getStatusCode(),
+                    $response->getBody()
+                ));
+            }
+        } catch (ClientException $e) {
             $output->writeln(sprintf(
                 '<error>Message "%s" could not be processed and back-end returned error %s. Reason: %s</error>',
                 $message['MessageId'],
-                $response->getStatusCode(),
-                $response->getBody()
+                $e->getResponse()->getStatusCode(),
+                $e->getResponse()->getBody()->getContents()
             ));
         }
     }
