@@ -20,19 +20,19 @@ namespace ZfrEbWorker\Container;
 
 use Psr\Container\ContainerInterface;
 use ZfrEbWorker\Exception\RuntimeException;
-use ZfrEbWorker\Middleware\WorkerMiddleware;
+use ZfrEbWorker\Middleware\WorkerMessageAttributesMiddleware;
 
 /**
- * @author Michaël Gallego
+ * @author Benoît Osterberger
  */
-class WorkerMiddlewareFactory
+class WorkerMessageAttributesMiddlewareFactory
 {
     /**
      * @param  ContainerInterface $container
-     * @return WorkerMiddleware
+     * @return WorkerMessageAttributesMiddleware
      */
-    public function __invoke(ContainerInterface $container): WorkerMiddleware
+    public function __invoke(ContainerInterface $container): WorkerMessageAttributesMiddleware
     {
-        return new WorkerMiddleware($container);
+        return new WorkerMessageAttributesMiddleware();
     }
 }

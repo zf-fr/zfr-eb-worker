@@ -8,11 +8,14 @@ use ZfrEbWorker\Container\InMemoryMessageQueueRepositoryFactory;
 use ZfrEbWorker\Container\WorkerCommandFactory;
 use ZfrEbWorker\Container\WorkerMiddlewareFactory;
 use ZfrEbWorker\Container\MessageRouterMiddlewareFactory;
+use ZfrEbWorker\Container\WorkerMessageAttributesMiddlewareFactory;
 use ZfrEbWorker\Listener\SilentFailingListener;
 use ZfrEbWorker\MessageQueue\InMemoryMessageQueueRepository;
 use ZfrEbWorker\MessageQueue\MessageQueueRepositoryInterface;
 use ZfrEbWorker\Middleware\WorkerMiddleware;
 use ZfrEbWorker\Middleware\MessageRouterMiddleware;
+use ZfrEbWorker\Middleware\WorkerMessageAttributesMiddleware;
+
 
 return [
     'dependencies' => [
@@ -21,12 +24,13 @@ return [
         ],
 
         'factories' => [
-            InMemoryMessageQueueRepository::class => InMemoryMessageQueueRepositoryFactory::class,
-            PublisherCommand::class               => PublisherCommandFactory::class,
-            SilentFailingListener::class          => InvokableFactory::class,
-            WorkerCommand::class                  => WorkerCommandFactory::class,
-            WorkerMiddleware::class               => WorkerMiddlewareFactory::class,
-            MessageRouterMiddleware::class        => MessageRouterMiddlewareFactory::class,
+            InMemoryMessageQueueRepository::class    => InMemoryMessageQueueRepositoryFactory::class,
+            PublisherCommand::class                  => PublisherCommandFactory::class,
+            SilentFailingListener::class             => InvokableFactory::class,
+            WorkerCommand::class                     => WorkerCommandFactory::class,
+            WorkerMiddleware::class                  => WorkerMiddlewareFactory::class,
+            MessageRouterMiddleware::class           => MessageRouterMiddlewareFactory::class,
+            WorkerMessageAttributesMiddleware::class => WorkerMessageAttributesMiddlewareFactory::class,
         ]
     ],
 ];
