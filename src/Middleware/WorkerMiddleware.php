@@ -27,7 +27,7 @@ use Zend\Stratigility\MiddlewarePipe;
 
 /**
  * Worker middleware
- * This class is kept for bck compatibility reasons only
+ * This class is kept for back compatibility reasons only
  * All it does is calling a new pipeline with WorkerMessageAttributesMiddleware and MessageRouterMiddleware
  *
  * @author Benoît Osterberger
@@ -47,7 +47,6 @@ class WorkerMiddleware implements MiddlewareInterface
     private $container;
 
     /**
-     * @param array              $messagesMapping
      * @param ContainerInterface $container
      */
     public function __construct(ContainerInterface $container)
