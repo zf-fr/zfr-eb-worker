@@ -33,6 +33,12 @@ class WorkerMiddlewareFactory
      */
     public function __invoke(ContainerInterface $container): WorkerMiddleware
     {
-        return new WorkerMiddleware($container);
+        $config = $container->get('config');
+
+        if (!isset($config['zfr_eb_worker'])) {
+            throw new RuntimeException('Key "zfr_eb_worker" is missing');
+        }
+
+        return new WorkerMiddleware($config['zfr_eb_worker']['messages'], $container);
     }
 }
