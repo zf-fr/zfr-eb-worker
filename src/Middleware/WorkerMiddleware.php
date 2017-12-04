@@ -47,9 +47,10 @@ class WorkerMiddleware implements MiddlewareInterface
     private $container;
 
     /**
+     * @param array $messagesMapping        kept only for BC
      * @param ContainerInterface $container
      */
-    public function __construct(ContainerInterface $container)
+    public function __construct(array $messagesMapping, ContainerInterface $container)
     {
         $this->container = $container;
     }
