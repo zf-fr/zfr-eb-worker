@@ -6,6 +6,7 @@ use Aws\Sqs\Exception\SqsException;
 use Aws\Sqs\SqsClient;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -174,7 +175,7 @@ class WorkerCommand extends Command
                     $response->getBody()
                 ));
             }
-        } catch (ClientException $e) {
+        } catch (ClientException | RequestException $e) {
             $output->writeln(sprintf(
                 '<error>Message "%s" could not be processed and back-end returned error %s. Reason: %s</error>',
                 $message['MessageId'],
